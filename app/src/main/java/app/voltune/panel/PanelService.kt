@@ -19,10 +19,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import app.voltune.panel.databinding.OverlayPanelBinding
+import kotlin.math.abs
 
 class PanelService : Service() {
 
@@ -102,6 +104,7 @@ class PanelService : Service() {
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun showTrigger() {
         val pill = View(this).apply {
             background = GradientDrawable().apply {
@@ -113,7 +116,27 @@ class PanelService : Service() {
 
         val touchArea = FrameLayout(this).apply {
             addView(pill, FrameLayout.LayoutParams(dp(6), dp(72), Gravity.END or Gravity.CENTER_VERTICAL))
-            setOnClickListener { showPanel() }
+        }
+
+        var downX = 0f
+        var opened = false
+        touchArea.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.rawX
+                    opened = false
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (!opened && downX - event.rawX > dp(20)) {
+                        opened = true
+                        showPanel()
+                    }
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (!opened && abs(event.rawX - downX) < dp(10)) showPanel()
+                }
+            }
+            true
         }
 
         val params = overlayParams(dp(28), dp(110)).apply {
@@ -132,7 +155,12 @@ class PanelService : Service() {
         val inflater = LayoutInflater.from(themed)
         val binding = OverlayPanelBinding.inflate(inflater)
 
-        val rows = StreamRows(themed, inflater, binding.panelStreams)
+        val rows = StreamRows(themed, inflater, binding.panelStreams) {
+            binding.root.post {
+                hidePanel()
+                openDndSettings()
+            }
+        }
         rows.build()
         rows.startWatching()
 
@@ -165,6 +193,14 @@ class PanelService : Service() {
         panel = null
         panelRows = null
         trigger?.visibility = View.VISIBLE
+    }
+
+    private fun openDndSettings() {
+        Toast.makeText(this, R.string.dnd_access_hint, Toast.LENGTH_LONG).show()
+        startActivity(
+            Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     private fun overlayParams(width: Int, height: Int, extraFlags: Int = 0) =
