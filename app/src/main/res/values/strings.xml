@@ -14,6 +14,7 @@
     <string name="floating_panel">Floating panel</string>
     <string name="floating_panel_desc">Open volume controls from any app using a trigger on the screen edge</string>
     <string name="overlay_permission_hint">Allow Voltune to display over other apps, then come back</string>
+    <string name="dnd_access_hint">Allow Do Not Disturb access so Voltune can change ring and notification volume</string>
 
     <string name="panel_channel_name">Floating panel</string>
     <string name="panel_notification_title">Floating panel is on</string>
