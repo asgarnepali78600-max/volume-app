@@ -13,12 +13,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import app.voltune.panel.databinding.ActivityMainBinding
 import app.voltune.panel.databinding.ItemStreamBinding
+import com.google.android.material.slider.Slider
 
 class MainActivity : AppCompatActivity() {
 
     private class StreamRow(val type: Int, val view: ItemStreamBinding) {
         var min = 0
         var max = 1
+        var dragging = false
     }
 
     private val streams = listOf(
@@ -36,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     private val volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
-            rows.forEach { sync(it) }
+            rows.filterNot { it.dragging }.forEach { sync(it) }
         }
     }
 
@@ -85,6 +87,17 @@ class MainActivity : AppCompatActivity() {
                 showPercent(row, value.toInt())
             }
 
+            item.streamSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                override fun onStartTrackingTouch(slider: Slider) {
+                    row.dragging = true
+                }
+
+                override fun onStopTrackingTouch(slider: Slider) {
+                    row.dragging = false
+                    sync(row)
+                }
+            })
+
             binding.streamList.addView(item.root)
             rows += row
         }
@@ -94,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         try {
             audio.setStreamVolume(row.type, level, 0)
         } catch (e: SecurityException) {
-            sync(row)
+            if (!row.dragging) sync(row)
         }
     }
 
