@@ -17,6 +17,18 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            val sharedKey = rootProject.file("voltune-debug.jks")
+            if (sharedKey.exists()) {
+                storeFile = sharedKey
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
