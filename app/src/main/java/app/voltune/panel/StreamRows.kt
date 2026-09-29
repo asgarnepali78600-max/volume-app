@@ -1,5 +1,6 @@
 package app.voltune.panel
 
+import android.app.NotificationManager
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
@@ -15,13 +16,16 @@ import com.google.android.material.slider.Slider
 class StreamRows(
     private val context: Context,
     private val inflater: LayoutInflater,
-    private val container: ViewGroup
+    private val container: ViewGroup,
+    private val onDndAccessNeeded: () -> Unit = {}
 ) {
 
     private class Row(val type: Int, val view: ItemStreamBinding) {
         var min = 0
         var max = 1
         var dragging = false
+        var requested = 0
+        var blocked = false
     }
 
     private val streams = listOf(
@@ -33,7 +37,14 @@ class StreamRows(
         AudioManager.STREAM_SYSTEM to R.string.stream_system
     )
 
+    private val ringerLinked = setOf(
+        AudioManager.STREAM_RING,
+        AudioManager.STREAM_NOTIFICATION,
+        AudioManager.STREAM_SYSTEM
+    )
+
     private val audio = context.getSystemService(AudioManager::class.java)
+    private val notifications = context.getSystemService(NotificationManager::class.java)
     private val rows = mutableListOf<Row>()
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -67,11 +78,13 @@ class StreamRows(
             item.streamSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
                 override fun onStartTrackingTouch(slider: Slider) {
                     row.dragging = true
+                    row.blocked = false
                 }
 
                 override fun onStopTrackingTouch(slider: Slider) {
                     row.dragging = false
                     sync(row)
+                    checkRefused(row)
                 }
             })
 
@@ -94,11 +107,27 @@ class StreamRows(
     }
 
     private fun setVolume(row: Row, level: Int) {
+        row.requested = level
         try {
+            if (level > 0 && row.type in ringerLinked &&
+                audio.ringerMode != AudioManager.RINGER_MODE_NORMAL
+            ) {
+                audio.ringerMode = AudioManager.RINGER_MODE_NORMAL
+            }
             audio.setStreamVolume(row.type, level, 0)
         } catch (e: SecurityException) {
+            row.blocked = true
             if (!row.dragging) sync(row)
         }
+    }
+
+    private fun checkRefused(row: Row) {
+        if (row.type !in ringerLinked) return
+        val refused = row.blocked || (row.requested > 0 && audio.getStreamVolume(row.type) == 0)
+        if (refused && !notifications.isNotificationPolicyAccessGranted) {
+            onDndAccessNeeded()
+        }
+        row.blocked = false
     }
 
     private fun sync(row: Row) {
