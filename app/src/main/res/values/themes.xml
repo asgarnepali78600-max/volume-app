@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.Voltune" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/vt_primary</item>
+        <item name="colorOnPrimary">@color/vt_on_primary</item>
+        <item name="colorSecondary">@color/vt_accent</item>
+        <item name="colorSurface">@color/vt_surface</item>
+        <item name="colorOnSurface">@color/vt_text</item>
+        <item name="android:colorBackground">@color/vt_background</item>
+        <item name="android:windowBackground">@color/vt_background</item>
+    </style>
+</resources>
