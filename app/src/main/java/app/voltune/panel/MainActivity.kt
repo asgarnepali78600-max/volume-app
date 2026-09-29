@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         applySystemBarPadding()
 
-        streamRows = StreamRows(this, layoutInflater, binding.streamList)
+        streamRows = StreamRows(this, layoutInflater, binding.streamList) { openDndSettings() }
         streamRows.build()
 
         binding.panelSwitch.setOnClickListener {
@@ -95,6 +95,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun stopPanel() {
         stopService(Intent(this, PanelService::class.java))
+    }
+
+    private fun openDndSettings() {
+        Toast.makeText(this, R.string.dnd_access_hint, Toast.LENGTH_LONG).show()
+        startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
     }
 
     private fun applySystemBarPadding() {
