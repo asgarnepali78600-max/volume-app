@@ -1,46 +1,31 @@
 package app.voltune.panel
 
-import android.database.ContentObserver
-import android.media.AudioManager
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import app.voltune.panel.databinding.ActivityMainBinding
-import app.voltune.panel.databinding.ItemStreamBinding
-import com.google.android.material.slider.Slider
 
 class MainActivity : AppCompatActivity() {
 
-    private class StreamRow(val type: Int, val view: ItemStreamBinding) {
-        var min = 0
-        var max = 1
-        var dragging = false
-    }
-
-    private val streams = listOf(
-        AudioManager.STREAM_MUSIC to R.string.stream_media,
-        AudioManager.STREAM_RING to R.string.stream_ring,
-        AudioManager.STREAM_NOTIFICATION to R.string.stream_notification,
-        AudioManager.STREAM_ALARM to R.string.stream_alarm,
-        AudioManager.STREAM_VOICE_CALL to R.string.stream_call,
-        AudioManager.STREAM_SYSTEM to R.string.stream_system
-    )
-
     private lateinit var binding: ActivityMainBinding
-    private lateinit var audio: AudioManager
-    private val rows = mutableListOf<StreamRow>()
+    private lateinit var streamRows: StreamRows
+    private var waitingForOverlay = false
 
-    private val volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(selfChange: Boolean) {
-            rows.filterNot { it.dragging }.forEach { sync(it) }
+    private val notificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            startPanel()
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,80 +35,67 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         applySystemBarPadding()
 
-        audio = getSystemService(AudioManager::class.java)
-        buildStreamRows()
+        streamRows = StreamRows(this, layoutInflater, binding.streamList)
+        streamRows.build()
+
+        binding.panelSwitch.setOnClickListener {
+            if (binding.panelSwitch.isChecked) enablePanel() else stopPanel()
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        contentResolver.registerContentObserver(Settings.System.CONTENT_URI, true, volumeObserver)
-        rows.forEach { sync(it) }
+        streamRows.startWatching()
+        binding.panelSwitch.isChecked = PanelService.isRunning
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (waitingForOverlay) {
+            waitingForOverlay = false
+            if (Settings.canDrawOverlays(this)) askNotificationsThenStart()
+        }
     }
 
     override fun onStop() {
-        contentResolver.unregisterContentObserver(volumeObserver)
+        streamRows.stopWatching()
         super.onStop()
     }
 
-    private fun buildStreamRows() {
-        for ((type, label) in streams) {
-            val item = ItemStreamBinding.inflate(layoutInflater, binding.streamList, false)
-            val row = StreamRow(type, item)
+    private fun enablePanel() {
+        if (Settings.canDrawOverlays(this)) {
+            askNotificationsThenStart()
+            return
+        }
 
-            row.min = minVolume(type)
-            row.max = audio.getStreamMaxVolume(type)
-            if (row.max <= row.min) {
-                row.max = row.min + 1
-                item.streamSlider.isEnabled = false
-            }
+        binding.panelSwitch.isChecked = false
+        waitingForOverlay = true
+        Toast.makeText(this, R.string.overlay_permission_hint, Toast.LENGTH_LONG).show()
+        startActivity(
+            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+        )
+    }
 
-            item.streamName.setText(label)
-            item.streamSlider.valueFrom = row.min.toFloat()
-            item.streamSlider.valueTo = row.max.toFloat()
-            item.streamSlider.value = row.min.toFloat()
+    private fun askNotificationsThenStart() {
+        val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
 
-            item.streamSlider.addOnChangeListener { _, value, fromUser ->
-                if (fromUser) setVolume(row, value.toInt())
-                showPercent(row, value.toInt())
-            }
-
-            item.streamSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-                override fun onStartTrackingTouch(slider: Slider) {
-                    row.dragging = true
-                }
-
-                override fun onStopTrackingTouch(slider: Slider) {
-                    row.dragging = false
-                    sync(row)
-                }
-            })
-
-            binding.streamList.addView(item.root)
-            rows += row
+        if (needsAsk) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            startPanel()
         }
     }
 
-    private fun setVolume(row: StreamRow, level: Int) {
-        try {
-            audio.setStreamVolume(row.type, level, 0)
-        } catch (e: SecurityException) {
-            if (!row.dragging) sync(row)
-        }
+    private fun startPanel() {
+        ContextCompat.startForegroundService(this, Intent(this, PanelService::class.java))
+        binding.panelSwitch.isChecked = true
     }
 
-    private fun sync(row: StreamRow) {
-        val current = audio.getStreamVolume(row.type).coerceIn(row.min, row.max)
-        row.view.streamSlider.value = current.toFloat()
-        showPercent(row, current)
+    private fun stopPanel() {
+        stopService(Intent(this, PanelService::class.java))
     }
-
-    private fun showPercent(row: StreamRow, level: Int) {
-        val percent = level * 100 / row.max
-        row.view.streamValue.text = getString(R.string.percent_format, percent)
-    }
-
-    private fun minVolume(type: Int): Int =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) audio.getStreamMinVolume(type) else 0
 
     private fun applySystemBarPadding() {
         val base = binding.root.paddingTop
