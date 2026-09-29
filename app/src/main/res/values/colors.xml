@@ -1,0 +1,12 @@
+<resources>
+    <color name="vt_primary">#6C5CE7</color>
+    <color name="vt_on_primary">#FFFFFF</color>
+    <color name="vt_accent">#00D1B2</color>
+
+    <color name="vt_background">#0F1115</color>
+    <color name="vt_surface">#1A1D24</color>
+    <color name="vt_surface_high">#242833</color>
+
+    <color name="vt_text">#E6E8EE</color>
+    <color name="vt_text_muted">#8A90A0</color>
+</resources>
