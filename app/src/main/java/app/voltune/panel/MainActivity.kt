@@ -2,31 +2,47 @@ package app.voltune.panel
 
 import android.Manifest
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Gravity
 import android.view.View
-import android.widget.LinearLayout
+import android.widget.FrameLayout
+import android.widget.GridLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import app.voltune.panel.databinding.ActivityMainBinding
-import com.google.android.material.slider.Slider
+import app.voltune.panel.databinding.ItemSectionBinding
 
 class MainActivity : AppCompatActivity() {
 
+    private enum class Section(@StringRes val title: Int, @StringRes val desc: Int) {
+        PRESETS(R.string.section_presets, R.string.section_presets_desc),
+        THEME(R.string.section_theme, R.string.section_theme_desc),
+        SLIDERS(R.string.section_sliders, R.string.section_sliders_desc),
+        TRIGGER(R.string.section_trigger, R.string.section_trigger_desc),
+        SHORTCUTS(R.string.section_shortcuts, R.string.section_shortcuts_desc),
+        BEHAVIOUR(R.string.section_behaviour, R.string.section_behaviour_desc),
+        PROFILES(R.string.section_profiles, R.string.section_profiles_desc),
+        AUDIO(R.string.section_audio, R.string.section_audio_desc),
+        WIDGETS(R.string.section_widgets, R.string.section_widgets_desc),
+        BACKUP(R.string.section_backup, R.string.section_backup_desc),
+        PERMISSIONS(R.string.section_permissions, R.string.section_permissions_desc)
+    }
+
     private lateinit var binding: ActivityMainBinding
-    private lateinit var streamRows: StreamRows
-    private lateinit var prefs: Prefs
-    private val accentDots = mutableListOf<View>()
+    private lateinit var store: ConfigStore
+    private lateinit var preview: PanelView
+    private var configHandle: SharedPreferences.OnSharedPreferenceChangeListener? = null
     private var waitingForOverlay = false
 
     private val notificationPermission =
@@ -42,25 +58,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         applySystemBarPadding()
 
-        prefs = Prefs(this)
+        store = ConfigStore(this)
+        preview = PanelView(this).apply { onDndAccessNeeded = { openDndSettings() } }
+        binding.previewHost.addView(preview)
 
-        streamRows = StreamRows(this, layoutInflater, binding.streamList) { openDndSettings() }
-        streamRows.build()
-        streamRows.applyAccent(prefs.accentColor)
+        buildSections()
 
         binding.panelSwitch.setOnClickListener {
             if (binding.panelSwitch.isChecked) enablePanel() else stopPanel()
         }
-
-        setupTriggerSide()
-        setupAccentDots()
-        setupOpacity()
     }
 
     override fun onStart() {
         super.onStart()
-        streamRows.startWatching()
         binding.panelSwitch.isChecked = PanelService.isRunning
+        configHandle = store.observe { renderPreview() }
+        renderPreview()
     }
 
     override fun onResume() {
@@ -72,73 +85,56 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        streamRows.stopWatching()
+        configHandle?.let { store.stopObserving(it) }
+        configHandle = null
         super.onStop()
     }
 
-    private fun setupTriggerSide() {
-        binding.sideGroup.check(if (prefs.triggerOnLeft) R.id.sideLeft else R.id.sideRight)
-        binding.sideGroup.addOnButtonCheckedListener { _, id, checked ->
-            if (!checked) return@addOnButtonCheckedListener
-            prefs.triggerOnLeft = id == R.id.sideLeft
-            refreshPanel()
+    private fun renderPreview() {
+        preview.apply(store.load())
+        fitPreview()
+    }
+
+    private fun fitPreview() {
+        val host = binding.previewHost
+        val available = host.width - host.paddingLeft - host.paddingRight
+        if (available <= 0) {
+            host.post { fitPreview() }
+            return
+        }
+
+        val unspecified = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        preview.measure(unspecified, unspecified)
+        val width = preview.measuredWidth
+        val height = preview.measuredHeight
+
+        val scale = if (width > available) available.toFloat() / width else 1f
+        preview.layoutParams = FrameLayout.LayoutParams(width, height, Gravity.CENTER)
+        preview.scaleX = scale
+        preview.scaleY = scale
+    }
+
+    private fun buildSections() {
+        val gap = dp(6)
+        Section.entries.forEach { section ->
+            val card = ItemSectionBinding.inflate(layoutInflater, binding.sectionGrid, false)
+            card.sectionTitle.setText(section.title)
+            card.sectionDesc.setText(section.desc)
+            card.root.setOnClickListener { openSection(section) }
+
+            val params = GridLayout.LayoutParams(
+                GridLayout.spec(GridLayout.UNDEFINED),
+                GridLayout.spec(GridLayout.UNDEFINED, 1f)
+            ).apply {
+                width = 0
+                setMargins(gap, gap, gap, gap)
+            }
+            binding.sectionGrid.addView(card.root, params)
         }
     }
 
-    private fun setupAccentDots() {
-        Prefs.ACCENTS.forEachIndexed { index, _ ->
-            val dot = View(this).apply {
-                contentDescription = getString(R.string.cd_accent_option, index + 1)
-                setOnClickListener { selectAccent(index) }
-            }
-            val size = dp(36)
-            val params = LinearLayout.LayoutParams(size, size).apply { marginEnd = dp(14) }
-            binding.accentRow.addView(dot, params)
-            accentDots += dot
-        }
-        paintAccentDots()
-    }
-
-    private fun selectAccent(index: Int) {
-        prefs.accentIndex = index
-        paintAccentDots()
-        streamRows.applyAccent(prefs.accentColor)
-        refreshPanel()
-    }
-
-    private fun paintAccentDots() {
-        accentDots.forEachIndexed { index, dot ->
-            dot.background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Prefs.ACCENTS[index])
-                if (index == prefs.accentIndex) setStroke(dp(3), Color.WHITE)
-            }
-        }
-    }
-
-    private fun setupOpacity() {
-        val slider = binding.opacitySlider
-        slider.value = prefs.panelOpacity.coerceIn(40, 100).toFloat()
-        showOpacity(slider.value.toInt())
-
-        slider.addOnChangeListener { _, value, _ -> showOpacity(value.toInt()) }
-        slider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-            override fun onStartTrackingTouch(slider: Slider) = Unit
-
-            override fun onStopTrackingTouch(slider: Slider) {
-                prefs.panelOpacity = slider.value.toInt()
-                refreshPanel()
-            }
-        })
-    }
-
-    private fun showOpacity(value: Int) {
-        binding.opacityValue.text = getString(R.string.percent_format, value)
-    }
-
-    private fun refreshPanel() {
-        if (!PanelService.isRunning) return
-        startService(Intent(this, PanelService::class.java).setAction(PanelService.ACTION_REFRESH))
+    private fun openSection(section: Section) {
+        Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show()
     }
 
     private fun enablePanel() {
