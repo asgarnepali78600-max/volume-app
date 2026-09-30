@@ -55,6 +55,7 @@ class PanelService : Service() {
         }
 
         if (trigger == null) showTrigger()
+        if (intent?.action == ACTION_SHOW) showPanel()
         return START_STICKY
     }
 
@@ -87,7 +88,7 @@ class PanelService : Service() {
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_tile)
             .setContentTitle(getString(R.string.panel_notification_title))
             .setContentText(getString(R.string.panel_notification_text))
             .setContentIntent(openApp)
@@ -216,6 +217,7 @@ class PanelService : Service() {
 
     companion object {
         const val ACTION_STOP = "app.voltune.panel.STOP"
+        const val ACTION_SHOW = "app.voltune.panel.SHOW"
         private const val CHANNEL_ID = "floating_panel"
         private const val NOTIFICATION_ID = 1
 
