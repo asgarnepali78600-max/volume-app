@@ -8,4 +8,11 @@
         <item name="android:colorBackground">@color/vt_background</item>
         <item name="android:windowBackground">@color/vt_background</item>
     </style>
+
+    <style name="Theme.Voltune.Transparent" parent="Theme.Voltune">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>
