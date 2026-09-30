@@ -27,4 +27,12 @@
     <string name="widget_media_format">Media %1$d%%</string>
     <string name="cd_volume_down">Volume down</string>
     <string name="cd_volume_up">Volume up</string>
+
+    <string name="customize">Customize</string>
+    <string name="trigger_side">Trigger side</string>
+    <string name="side_left">Left</string>
+    <string name="side_right">Right</string>
+    <string name="accent_color">Accent color</string>
+    <string name="panel_opacity">Panel opacity</string>
+    <string name="cd_accent_option">Accent color %1$d</string>
 </resources>
