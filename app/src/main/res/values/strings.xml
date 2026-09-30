@@ -35,4 +35,31 @@
     <string name="accent_color">Accent color</string>
     <string name="panel_opacity">Panel opacity</string>
     <string name="cd_accent_option">Accent color %1$d</string>
+
+    <string name="preview_label">Live preview</string>
+    <string name="settings_label">Settings</string>
+    <string name="coming_soon">Coming soon</string>
+
+    <string name="section_presets">Style presets</string>
+    <string name="section_presets_desc">Ready-made looks</string>
+    <string name="section_theme">Theme studio</string>
+    <string name="section_theme_desc">Colors, shape and size</string>
+    <string name="section_sliders">Sliders</string>
+    <string name="section_sliders_desc">Show, hide and reorder</string>
+    <string name="section_trigger">Trigger</string>
+    <string name="section_trigger_desc">Edge handle settings</string>
+    <string name="section_shortcuts">Shortcuts</string>
+    <string name="section_shortcuts_desc">Quick toggles in the panel</string>
+    <string name="section_behaviour">Behaviour</string>
+    <string name="section_behaviour_desc">How the panel acts</string>
+    <string name="section_profiles">Profiles</string>
+    <string name="section_profiles_desc">Volume presets and schedules</string>
+    <string name="section_audio">Audio tools</string>
+    <string name="section_audio_desc">Equalizer, boost and media</string>
+    <string name="section_widgets">Widgets</string>
+    <string name="section_widgets_desc">Home screen controls</string>
+    <string name="section_backup">Backup</string>
+    <string name="section_backup_desc">Import and export settings</string>
+    <string name="section_permissions">Permissions</string>
+    <string name="section_permissions_desc">Check what Voltune can do</string>
 </resources>
