@@ -20,4 +20,6 @@
     <string name="panel_notification_title">Floating panel is on</string>
     <string name="panel_notification_text">Tap the edge trigger to adjust volume</string>
     <string name="action_turn_off">Turn off</string>
+
+    <string name="tile_label">Volume panel</string>
 </resources>
