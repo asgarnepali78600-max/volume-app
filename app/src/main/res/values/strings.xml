@@ -22,4 +22,9 @@
     <string name="action_turn_off">Turn off</string>
 
     <string name="tile_label">Volume panel</string>
+
+    <string name="widget_description">Open the volume panel and adjust media volume from your home screen</string>
+    <string name="widget_media_format">Media %1$d%%</string>
+    <string name="cd_volume_down">Volume down</string>
+    <string name="cd_volume_up">Volume up</string>
 </resources>
