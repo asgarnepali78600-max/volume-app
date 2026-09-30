@@ -29,10 +29,39 @@
             android:textColor="@color/vt_text_muted"
             android:textSize="14sp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="24dp"
+            android:letterSpacing="0.1"
+            android:text="@string/preview_label"
+            android:textAllCaps="true"
+            android:textColor="@color/vt_text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="8dp"
+            app:cardBackgroundColor="@color/vt_surface"
+            app:cardCornerRadius="24dp"
+            app:strokeWidth="0dp">
+
+            <FrameLayout
+                android:id="@+id/previewHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="200dp"
+                android:padding="20dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/vt_surface_high"
             app:cardCornerRadius="20dp"
             app:strokeWidth="0dp">
@@ -76,117 +105,26 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <LinearLayout
-            android:id="@+id/streamList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="28dp"
-            android:text="@string/customize"
-            android:textColor="@color/vt_text"
-            android:textSize="20sp"
+            android:letterSpacing="0.1"
+            android:text="@string/settings_label"
+            android:textAllCaps="true"
+            android:textColor="@color/vt_text_muted"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
+        <GridLayout
+            android:id="@+id/sectionGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/vt_surface"
-            app:cardCornerRadius="20dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/trigger_side"
-                    android:textColor="@color/vt_text"
-                    android:textSize="16sp" />
-
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/sideGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/sideLeft"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/side_left" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/sideRight"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/side_right" />
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/accent_color"
-                    android:textColor="@color/vt_text"
-                    android:textSize="16sp" />
-
-                <LinearLayout
-                    android:id="@+id/accentRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="horizontal" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/panel_opacity"
-                        android:textColor="@color/vt_text"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/opacityValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/vt_text_muted"
-                        android:textSize="15sp" />
-                </LinearLayout>
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/opacitySlider"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:stepSize="5"
-                    android:valueFrom="40"
-                    android:valueTo="100"
-                    app:labelBehavior="gone" />
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+            android:layout_marginStart="-6dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="-6dp"
+            android:columnCount="2" />
 
     </LinearLayout>
 
