@@ -2,6 +2,7 @@ package app.voltune.panel
 
 import android.app.NotificationManager
 import android.content.Context
+import android.content.res.ColorStateList
 import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Build
@@ -10,6 +11,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import app.voltune.panel.databinding.ItemStreamBinding
 import com.google.android.material.slider.Slider
 
@@ -46,6 +48,7 @@ class StreamRows(
     private val audio = context.getSystemService(AudioManager::class.java)
     private val notifications = context.getSystemService(NotificationManager::class.java)
     private val rows = mutableListOf<Row>()
+    private var accent: Int? = null
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
@@ -88,9 +91,15 @@ class StreamRows(
                 }
             })
 
+            paint(row)
             container.addView(item.root)
             rows += row
         }
+    }
+
+    fun applyAccent(color: Int) {
+        accent = color
+        rows.forEach { paint(it) }
     }
 
     fun startWatching() {
@@ -100,6 +109,16 @@ class StreamRows(
 
     fun stopWatching() {
         context.contentResolver.unregisterContentObserver(observer)
+    }
+
+    private fun paint(row: Row) {
+        val color = accent ?: return
+        val tint = ColorStateList.valueOf(color)
+        row.view.streamSlider.trackActiveTintList = tint
+        row.view.streamSlider.thumbTintList = tint
+        row.view.streamSlider.haloTintList =
+            ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 0x33))
+        row.view.streamValue.setTextColor(color)
     }
 
     private fun syncAll() {
