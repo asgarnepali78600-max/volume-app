@@ -7,10 +7,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.database.ContentObserver
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.view.ContextThemeWrapper
 import android.view.Gravity
@@ -22,22 +25,30 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import androidx.core.content.ContextCompat
 import app.voltune.panel.databinding.OverlayPanelBinding
 import kotlin.math.abs
 
 class PanelService : Service() {
 
     private lateinit var windowManager: WindowManager
+    private lateinit var prefs: Prefs
     private var trigger: View? = null
     private var panel: OverlayPanelBinding? = null
     private var panelRows: StreamRows? = null
+
+    private val volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            VolumeWidget.refreshAll(this@PanelService)
+        }
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WindowManager::class.java)
+        prefs = Prefs(this)
+        contentResolver.registerContentObserver(Settings.System.CONTENT_URI, true, volumeObserver)
         isRunning = true
     }
 
@@ -54,15 +65,15 @@ class PanelService : Service() {
             return START_NOT_STICKY
         }
 
+        if (intent?.action == ACTION_REFRESH) removeOverlays()
         if (trigger == null) showTrigger()
         if (intent?.action == ACTION_SHOW) showPanel()
         return START_STICKY
     }
 
     override fun onDestroy() {
-        hidePanel()
-        trigger?.let { windowManager.removeView(it) }
-        trigger = null
+        removeOverlays()
+        contentResolver.unregisterContentObserver(volumeObserver)
         isRunning = false
         super.onDestroy()
     }
@@ -105,18 +116,23 @@ class PanelService : Service() {
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    private fun edgeGravity() = if (prefs.triggerOnLeft) Gravity.LEFT else Gravity.RIGHT
+
+    @SuppressLint("ClickableViewAccessibility", "RtlHardcoded")
     private fun showTrigger() {
+        val edge = edgeGravity()
+        val onLeft = prefs.triggerOnLeft
+
         val pill = View(this).apply {
             background = GradientDrawable().apply {
                 cornerRadius = dp(4).toFloat()
-                setColor(ContextCompat.getColor(this@PanelService, R.color.vt_primary))
+                setColor(prefs.accentColor)
                 alpha = 210
             }
         }
 
         val touchArea = FrameLayout(this).apply {
-            addView(pill, FrameLayout.LayoutParams(dp(6), dp(72), Gravity.END or Gravity.CENTER_VERTICAL))
+            addView(pill, FrameLayout.LayoutParams(dp(6), dp(72), edge or Gravity.CENTER_VERTICAL))
         }
 
         var downX = 0f
@@ -128,7 +144,8 @@ class PanelService : Service() {
                     opened = false
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    if (!opened && downX - event.rawX > dp(20)) {
+                    val inward = if (onLeft) event.rawX - downX else downX - event.rawX
+                    if (!opened && inward > dp(20)) {
                         opened = true
                         showPanel()
                     }
@@ -141,7 +158,7 @@ class PanelService : Service() {
         }
 
         val params = overlayParams(dp(28), dp(110)).apply {
-            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            gravity = edge or Gravity.CENTER_VERTICAL
         }
 
         windowManager.addView(touchArea, params)
@@ -163,8 +180,10 @@ class PanelService : Service() {
             }
         }
         rows.build()
+        rows.applyAccent(prefs.accentColor)
         rows.startWatching()
 
+        binding.root.alpha = prefs.panelOpacity / 100f
         binding.root.setOnTouchListener { view, event ->
             if (event.action == MotionEvent.ACTION_OUTSIDE) {
                 view.post { hidePanel() }
@@ -177,7 +196,7 @@ class PanelService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
         ).apply {
-            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            gravity = edgeGravity() or Gravity.CENTER_VERTICAL
             x = dp(20)
         }
 
@@ -194,6 +213,12 @@ class PanelService : Service() {
         panel = null
         panelRows = null
         trigger?.visibility = View.VISIBLE
+    }
+
+    private fun removeOverlays() {
+        hidePanel()
+        trigger?.let { windowManager.removeView(it) }
+        trigger = null
     }
 
     private fun openDndSettings() {
@@ -218,6 +243,7 @@ class PanelService : Service() {
     companion object {
         const val ACTION_STOP = "app.voltune.panel.STOP"
         const val ACTION_SHOW = "app.voltune.panel.SHOW"
+        const val ACTION_REFRESH = "app.voltune.panel.REFRESH"
         private const val CHANNEL_ID = "floating_panel"
         private const val NOTIFICATION_ID = 1
 
