@@ -23,6 +23,9 @@ class VolumeBar @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
+    var scale = 1f
+        set(value) { field = value; invalidate() }
+
     var style = BarStyle.SOLID
         set(value) { field = value; shadersDirty = true; invalidate() }
 
@@ -360,5 +363,5 @@ class VolumeBar @JvmOverloads constructor(
         onUserChange?.invoke(target)
     }
 
-    private fun dp(value: Float) = value * resources.displayMetrics.density
+    private fun dp(value: Float) = value * resources.displayMetrics.density * scale
 }
