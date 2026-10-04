@@ -14,10 +14,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import app.voltune.panel.PanelConfig.BarStyle
 import app.voltune.panel.databinding.ActivityThemeStudioBinding
 import app.voltune.panel.databinding.ItemColorRowBinding
 import app.voltune.panel.databinding.ItemSettingSliderBinding
 import app.voltune.panel.databinding.ItemSettingSwitchBinding
+import com.google.android.material.chip.Chip
 import com.google.android.material.slider.Slider
 import java.util.Locale
 
@@ -27,11 +29,20 @@ class ThemeStudioActivity : AppCompatActivity() {
     private lateinit var store: ConfigStore
     private var config = PanelConfig()
 
-    private val palette = intArrayOf(
-        0xFF0F1115.toInt(), 0xFF14161C.toInt(), 0xFF1E2230.toInt(), 0xFF2A2E3A.toInt(),
-        0xFF3A3F4F.toInt(), 0xFF9AA5B1.toInt(), 0xFFE6E8EE.toInt(), 0xFFFFFFFF.toInt(),
-        0xFFF4EFE6.toInt(), 0xFF6C5CE7.toInt(), 0xFF4DA3FF.toInt(), 0xFF00D1B2.toInt(),
-        0xFF7BC67E.toInt(), 0xFFFFB84D.toInt(), 0xFFFF6B81.toInt(), 0xFFB07D62.toInt()
+    private val palette = longArrayOf(
+        0xFF0F1115, 0xFF14161C, 0xFF1E2230, 0xFF2A2E3A, 0xFF3A3F4F,
+        0xFF0B1622, 0xFF1A1210, 0xFF2B0A14, 0xFF9AA5B1, 0xFFE6E8EE,
+        0xFFFFFFFF, 0xFFF4EFE6, 0x33FFFFFF, 0x66FFFFFF, 0xFF6C5CE7,
+        0xFF9D8CFF, 0xFF4DA3FF, 0xFF00D1B2, 0xFF7BC67E, 0xFFFFB84D,
+        0xFFFF6B81, 0xFFB07D62, 0xFFD4AF37, 0xFFF7E7A1, 0xFFB76E79
+    ).map { it.toInt() }
+
+    private val styleLabels = mapOf(
+        BarStyle.SOLID to R.string.style_solid,
+        BarStyle.GRADIENT to R.string.style_gradient,
+        BarStyle.GLASS to R.string.style_glass,
+        BarStyle.SEGMENTED to R.string.style_segmented,
+        BarStyle.LINE to R.string.style_line
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +60,7 @@ class ThemeStudioActivity : AppCompatActivity() {
         binding.preview.show(config)
 
         setupLayout()
+        setupStyle()
         setupColors()
         setupShape()
         setupSize()
@@ -75,21 +87,47 @@ class ThemeStudioActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupStyle() {
+        BarStyle.entries.forEach { style ->
+            val chip = Chip(this).apply {
+                id = View.generateViewId()
+                text = getString(styleLabels.getValue(style))
+                isCheckable = true
+                isChecked = config.barStyle == style
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) update { it.copy(barStyle = style) }
+                }
+            }
+            binding.styleGroup.addView(chip)
+        }
+    }
+
     private fun setupColors() {
         addColorRow(R.string.color_panel, { it.colors.panel }) { c, color ->
-            c.copy(colors = c.colors.copy(panel = color))
+            val linked = c.colors.panelEnd == c.colors.panel
+            c.copy(colors = c.colors.copy(panel = color, panelEnd = if (linked) color else c.colors.panelEnd))
+        }
+        addColorRow(R.string.color_panel_end, { it.colors.panelEnd }) { c, color ->
+            c.copy(colors = c.colors.copy(panelEnd = color))
         }
         addColorRow(R.string.color_track, { it.colors.track }) { c, color ->
             c.copy(colors = c.colors.copy(track = color))
         }
         addColorRow(R.string.color_fill, { it.colors.fill }) { c, color ->
-            c.copy(colors = c.colors.copy(fill = color))
+            val linked = c.colors.fillEnd == c.colors.fill
+            c.copy(colors = c.colors.copy(fill = color, fillEnd = if (linked) color else c.colors.fillEnd))
+        }
+        addColorRow(R.string.color_fill_end, { it.colors.fillEnd }) { c, color ->
+            c.copy(colors = c.colors.copy(fillEnd = color))
         }
         addColorRow(R.string.color_icon, { it.colors.icon }) { c, color ->
             c.copy(colors = c.colors.copy(icon = color))
         }
         addColorRow(R.string.color_text, { it.colors.text }) { c, color ->
             c.copy(colors = c.colors.copy(text = color))
+        }
+        addColorRow(R.string.color_border, { it.colors.border }) { c, color ->
+            c.copy(colors = c.colors.copy(border = color))
         }
     }
 
@@ -100,6 +138,9 @@ class ThemeStudioActivity : AppCompatActivity() {
         }
         addSlider(box, R.string.bar_corners, 0..40, 1, config.barCorner, ::dpText) { c, v ->
             c.copy(barCorner = v)
+        }
+        addSlider(box, R.string.border_width, 0..4, 1, config.borderWidth, ::dpText) { c, v ->
+            c.copy(borderWidth = v)
         }
     }
 
@@ -230,7 +271,7 @@ class ThemeStudioActivity : AppCompatActivity() {
 
     private fun percentText(value: Int) = getString(R.string.percent_format, value)
 
-    private fun hex(color: Int) = "#%06X".format(Locale.ROOT, color and 0xFFFFFF)
+    private fun hex(color: Int) = "#%08X".format(Locale.ROOT, color)
 
     private fun openDndSettings() {
         Toast.makeText(this, R.string.dnd_access_hint, Toast.LENGTH_LONG).show()
