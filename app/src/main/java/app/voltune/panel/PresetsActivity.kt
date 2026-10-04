@@ -12,7 +12,9 @@ import androidx.core.view.WindowInsetsCompat
 import app.voltune.panel.Presets.Part
 import app.voltune.panel.databinding.ActivityPresetsBinding
 import app.voltune.panel.databinding.ItemPresetBinding
+import app.voltune.panel.databinding.ItemSettingSliderBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 
 class PresetsActivity : AppCompatActivity() {
 
@@ -30,6 +32,7 @@ class PresetsActivity : AppCompatActivity() {
 
         store = ConfigStore(this)
         val current = store.load()
+        setupSize(current)
         buildGrid(binding.luxuryGrid, Presets.luxury, current)
         buildGrid(binding.signatureGrid, Presets.signature, current)
         buildGrid(binding.classicGrid, Presets.classic, current)
@@ -38,6 +41,30 @@ class PresetsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         highlight(store.load())
+    }
+
+    private fun setupSize(current: PanelConfig) {
+        val row = ItemSettingSliderBinding.inflate(layoutInflater, binding.sizeContainer, true)
+        val slider = row.settingSlider
+        val start = 70 + (current.scale.coerceIn(70, 150) - 70) / 5 * 5
+
+        row.settingLabel.setText(R.string.panel_size)
+        row.settingValue.text = getString(R.string.percent_format, start)
+        slider.valueFrom = 70f
+        slider.valueTo = 150f
+        slider.stepSize = 5f
+        slider.value = start.toFloat()
+
+        slider.addOnChangeListener { _, value, _ ->
+            row.settingValue.text = getString(R.string.percent_format, value.toInt())
+        }
+        slider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) = Unit
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                store.update { it.copy(scale = slider.value.toInt()) }
+            }
+        })
     }
 
     private fun buildGrid(grid: GridLayout, presets: List<Presets.Preset>, current: PanelConfig) {
