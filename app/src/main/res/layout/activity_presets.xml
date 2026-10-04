@@ -45,6 +45,18 @@
 
         <TextView
             style="@style/Voltune.GroupLabel"
+            android:text="@string/presets_signature" />
+
+        <GridLayout
+            android:id="@+id/signatureGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-6dp"
+            android:layout_marginEnd="-6dp"
+            android:columnCount="2" />
+
+        <TextView
+            style="@style/Voltune.GroupLabel"
             android:text="@string/presets_classic" />
 
         <GridLayout
