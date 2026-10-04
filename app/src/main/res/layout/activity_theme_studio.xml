@@ -90,6 +90,22 @@
 
             <TextView
                 style="@style/Voltune.GroupLabel"
+                android:text="@string/theme_style" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/styleGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    app:selectionRequired="true"
+                    app:singleSelection="true" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Voltune.GroupLabel"
                 android:text="@string/theme_colors" />
 
             <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
