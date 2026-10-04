@@ -21,13 +21,10 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import app.voltune.panel.PanelConfig.Animation
 import app.voltune.panel.PanelConfig.Position
 import kotlin.math.abs
 
@@ -90,7 +87,7 @@ class PanelService : Service() {
         val panelWasOpen = panel != null
         removeOverlays()
         showTrigger()
-        if (panelWasOpen) showPanel()
+        if (panelWasOpen) showPanel(animate = false)
     }
 
     private fun startInForeground() {
@@ -204,7 +201,7 @@ class PanelService : Service() {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun showPanel() {
+    private fun showPanel(animate: Boolean = true) {
         if (panel != null) return
 
         val themed = ContextThemeWrapper(this, R.style.Theme_Voltune)
@@ -238,64 +235,7 @@ class PanelService : Service() {
         windowManager.addView(view, params)
         panel = view
         trigger?.visibility = View.GONE
-        animateIn(view)
-    }
-
-    private fun animateIn(view: PanelView) {
-        val targetAlpha = view.alpha
-        val fromSide = if (config.trigger.onLeft) -1f else 1f
-
-        when (config.animation) {
-            Animation.NONE -> Unit
-            Animation.FADE -> {
-                view.alpha = 0f
-                view.animate().alpha(targetAlpha).setDuration(180).start()
-            }
-            Animation.SLIDE -> {
-                view.alpha = 0f
-                view.translationX = fromSide * dp(48)
-                view.animate()
-                    .alpha(targetAlpha)
-                    .translationX(0f)
-                    .setDuration(240)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
-                cascade(view) { child, _ -> child.translationX = fromSide * dp(16) }
-            }
-            Animation.POP -> {
-                view.alpha = 0f
-                view.scaleX = 0.8f
-                view.scaleY = 0.8f
-                view.animate()
-                    .alpha(targetAlpha)
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(280)
-                    .setInterpolator(OvershootInterpolator(1.6f))
-                    .start()
-                cascade(view) { child, _ ->
-                    child.scaleX = 0.6f
-                    child.scaleY = 0.6f
-                }
-            }
-        }
-    }
-
-    private fun cascade(view: PanelView, prepare: (View, Int) -> Unit) {
-        for (i in 0 until view.childCount) {
-            val child = view.getChildAt(i)
-            child.alpha = 0f
-            prepare(child, i)
-            child.animate()
-                .alpha(1f)
-                .translationX(0f)
-                .scaleX(1f)
-                .scaleY(1f)
-                .setStartDelay(60L + i * 35L)
-                .setDuration(200)
-                .setInterpolator(DecelerateInterpolator())
-                .start()
-        }
+        if (animate) PanelAnimator.enter(view, config.animation, config.trigger.onLeft)
     }
 
     private fun hidePanel(animated: Boolean = true) {
@@ -303,16 +243,14 @@ class PanelService : Service() {
         panel = null
         trigger?.visibility = View.VISIBLE
 
-        if (!animated || config.animation == Animation.NONE) {
+        if (!animated) {
             windowManager.removeView(view)
             return
         }
 
-        view.animate()
-            .alpha(0f)
-            .setDuration(120)
-            .withEndAction { if (view.isAttachedToWindow) windowManager.removeView(view) }
-            .start()
+        PanelAnimator.exit(view, config.animation) {
+            if (view.isAttachedToWindow) windowManager.removeView(view)
+        }
     }
 
     private fun removeOverlays() {
