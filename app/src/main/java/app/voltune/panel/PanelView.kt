@@ -39,6 +39,7 @@ class PanelView(context: Context) : LinearLayout(context) {
     private val notifications = context.getSystemService(NotificationManager::class.java)
     private val bound = mutableListOf<Bound>()
     private var watching = false
+    private var scale = 1f
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
@@ -54,6 +55,7 @@ class PanelView(context: Context) : LinearLayout(context) {
     fun apply(config: PanelConfig) {
         removeAllViews()
         bound.clear()
+        scale = config.scale / 100f
 
         val columns = config.layout == PanelConfig.Layout.COLUMNS
         val colors = config.colors
@@ -92,6 +94,7 @@ class PanelView(context: Context) : LinearLayout(context) {
         val levelPlace = if (config.showLevel) config.levelPosition else null
 
         val bar = VolumeBar(context).apply {
+            scale = this@PanelView.scale
             style = config.barStyle
             vertical = columns
             cornerRadius = dp(config.barCorner).toFloat()
@@ -236,7 +239,7 @@ class PanelView(context: Context) : LinearLayout(context) {
 
     private fun smallText(color: Int, bold: Boolean) = TextView(context).apply {
         setTextColor(color)
-        textSize = 11f
+        textSize = 11f * scale
         if (bold) typeface = Typeface.DEFAULT_BOLD
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
@@ -334,7 +337,7 @@ class PanelView(context: Context) : LinearLayout(context) {
     private fun minVolume(type: Int): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) audio.getStreamMinVolume(type) else 0
 
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    private fun dp(value: Int) = (value * resources.displayMetrics.density * scale).toInt()
 
     private companion object {
         val FLOATING_STYLES = setOf(BarStyle.SOLID, BarStyle.GRADIENT, BarStyle.GLASS)
