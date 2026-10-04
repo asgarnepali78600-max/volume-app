@@ -3,6 +3,7 @@ package app.voltune.panel
 import android.content.Context
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.MotionEvent
 import android.widget.FrameLayout
 import kotlin.math.max
 
@@ -13,6 +14,8 @@ class PanelPreview @JvmOverloads constructor(
 
     val panel = PanelView(context)
 
+    var interactive = true
+
     init {
         addView(panel, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER))
     }
@@ -21,6 +24,12 @@ class PanelPreview @JvmOverloads constructor(
         panel.apply(config)
         requestLayout()
     }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean =
+        !interactive || super.onInterceptTouchEvent(ev)
+
+    override fun onTouchEvent(event: MotionEvent): Boolean =
+        interactive && super.onTouchEvent(event)
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val unspecified = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
