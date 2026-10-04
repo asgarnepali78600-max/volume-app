@@ -32,6 +32,9 @@ class VolumeBar @JvmOverloads constructor(
     var cornerRadius = dp(20f)
         set(value) { field = value; invalidate() }
 
+    var outlineWidth = 0f
+        set(value) { field = value; shadersDirty = true; invalidate() }
+
     var showLevel = true
         set(value) { field = value; invalidate() }
 
@@ -67,6 +70,9 @@ class VolumeBar @JvmOverloads constructor(
         style = Paint.Style.STROKE
         color = 0x59FFFFFF
     }
+    private val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
     private val lineTrackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -89,7 +95,10 @@ class VolumeBar @JvmOverloads constructor(
     private val clip = Path()
     private var shadersDirty = true
 
-    fun setColors(track: Int, fill: Int, fillEnd: Int, icon: Int, text: Int) {
+    private val inset: Float
+        get() = if (outlineWidth > 0f) outlineWidth + dp(2f) else 0f
+
+    fun setColors(track: Int, fill: Int, fillEnd: Int, icon: Int, text: Int, outline: Int) {
         trackColor = track
         fillColor = fill
         fillEndColor = fillEnd
@@ -99,6 +108,7 @@ class VolumeBar @JvmOverloads constructor(
         lineTrackPaint.color = track
         knobPaint.color = fillEnd
         textPaint.color = text
+        outlinePaint.color = outline
         shadersDirty = true
         invalidate()
     }
@@ -123,19 +133,24 @@ class VolumeBar @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        val w = width.toFloat()
-        val h = height.toFloat()
+        val pad = inset
+        val w = width - pad * 2
+        val h = height - pad * 2
         if (w <= 0f || h <= 0f) return
         if (shadersDirty) buildShaders(w, h)
 
+        canvas.save()
+        canvas.translate(pad, pad)
         when (style) {
             BarStyle.SOLID, BarStyle.GRADIENT, BarStyle.GLASS -> drawFilled(canvas, w, h)
             BarStyle.SEGMENTED -> drawSegments(canvas, w, h)
             BarStyle.LINE -> drawLine(canvas, w, h)
         }
-
         drawIcon(canvas, w, h)
         if (showLevel && levelText.isNotEmpty()) drawLevel(canvas, w, h)
+        canvas.restore()
+
+        if (outlineWidth > 0f) drawOutline(canvas)
     }
 
     private fun fraction() = (level - min).toFloat() / (max - min)
@@ -158,6 +173,16 @@ class VolumeBar @JvmOverloads constructor(
             LinearGradient(0f, 0f, 0f, h * 0.6f, 0x55FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP)
         }
         shadersDirty = false
+    }
+
+    private fun drawOutline(canvas: Canvas) {
+        val half = outlineWidth / 2f
+        val w = width.toFloat()
+        val h = height.toFloat()
+        bounds.set(half, half, w - half, h - half)
+        val radius = min(cornerRadius + inset, min(w, h) / 2f) - half
+        outlinePaint.strokeWidth = outlineWidth
+        canvas.drawRoundRect(bounds, radius, radius, outlinePaint)
     }
 
     private fun drawFilled(canvas: Canvas, w: Float, h: Float) {
@@ -309,14 +334,21 @@ class VolumeBar @JvmOverloads constructor(
     }
 
     private fun updateFromTouch(event: MotionEvent) {
+        val pad = inset
+        val w = width - pad * 2
+        val h = height - pad * 2
+        if (w <= 0f || h <= 0f) return
+        val x = event.x - pad
+        val y = event.y - pad
+
         val fraction = if (style == BarStyle.LINE) {
-            val (start, end) = lineRange(width.toFloat(), height.toFloat())
-            val position = if (vertical) event.y else event.x
+            val (start, end) = lineRange(w, h)
+            val position = if (vertical) y else x
             if (end == start) 0f else (position - start) / (end - start)
         } else if (vertical) {
-            1f - event.y / height
+            1f - y / h
         } else {
-            event.x / width
+            x / w
         }
 
         val target = min + ((max - min) * fraction.coerceIn(0f, 1f)).roundToInt()
