@@ -31,12 +31,27 @@
             android:textColor="@color/vt_text_muted"
             android:textSize="14sp" />
 
+        <TextView
+            style="@style/Voltune.GroupLabel"
+            android:text="@string/presets_luxury" />
+
         <GridLayout
-            android:id="@+id/presetGrid"
+            android:id="@+id/luxuryGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="-6dp"
-            android:layout_marginTop="14dp"
+            android:layout_marginEnd="-6dp"
+            android:columnCount="2" />
+
+        <TextView
+            style="@style/Voltune.GroupLabel"
+            android:text="@string/presets_classic" />
+
+        <GridLayout
+            android:id="@+id/classicGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-6dp"
             android:layout_marginEnd="-6dp"
             android:columnCount="2" />
 
