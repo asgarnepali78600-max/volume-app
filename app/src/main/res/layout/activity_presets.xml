@@ -33,6 +33,18 @@
 
         <TextView
             style="@style/Voltune.GroupLabel"
+            android:text="@string/panel_size" />
+
+        <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+            <LinearLayout
+                android:id="@+id/sizeContainer"
+                style="@style/Voltune.GroupContent" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            style="@style/Voltune.GroupLabel"
             android:text="@string/presets_luxury" />
 
         <GridLayout
