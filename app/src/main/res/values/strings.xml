@@ -56,6 +56,21 @@
     <string name="section_permissions">Permissions</string>
     <string name="section_permissions_desc">Check what Voltune can do</string>
 
+    <string name="undo">Undo</string>
+    <string name="reset">Reset</string>
+    <string name="reset_done">Changes reset</string>
+    <string name="backdrop_dark">Dark</string>
+    <string name="backdrop_light">Light</string>
+    <string name="backdrop_clear">Clear</string>
+    <string name="play_animation">Play</string>
+
+    <string name="tab_style">Style</string>
+    <string name="tab_colors">Colors</string>
+    <string name="tab_shape">Shape</string>
+    <string name="tab_panel">Panel</string>
+    <string name="tab_text">Icons &amp; text</string>
+    <string name="tab_motion">Motion</string>
+
     <string name="theme_layout">Layout</string>
     <string name="layout_columns">Columns</string>
     <string name="layout_rows">Rows</string>
@@ -65,6 +80,9 @@
     <string name="style_glass">Glass</string>
     <string name="style_segmented">Segments</string>
     <string name="style_line">Line</string>
+    <string name="bar_outline">Slider outline</string>
+    <string name="hint_outline">A rim around each slider with a small gap</string>
+
     <string name="theme_colors">Colors</string>
     <string name="color_panel">Panel</string>
     <string name="color_panel_end">Panel gradient</string>
@@ -73,20 +91,48 @@
     <string name="color_fill_end">Fill gradient</string>
     <string name="color_icon">Icons</string>
     <string name="color_text">Text</string>
-    <string name="color_border">Border</string>
+    <string name="color_border">Panel border</string>
+    <string name="color_outline">Slider outline</string>
+    <string name="hint_colors">Pick the same color twice for a flat look, or two colors for a gradient</string>
     <string name="cd_color_option">Color %1$s</string>
+
     <string name="theme_shape">Shape</string>
     <string name="panel_corners">Panel corners</string>
     <string name="bar_corners">Slider corners</string>
-    <string name="border_width">Border width</string>
+    <string name="border_width">Panel border</string>
     <string name="theme_size">Size</string>
     <string name="bar_thickness">Thickness</string>
     <string name="bar_length">Length</string>
     <string name="bar_spacing">Spacing</string>
-    <string name="theme_display">Display</string>
+    <string name="panel_opacity">Opacity</string>
+
+    <string name="theme_panel">Panel</string>
+    <string name="panel_background">Panel background</string>
+    <string name="hint_panel_background">Turn off to let the sliders float on their own</string>
+    <string name="panel_position">Position on screen</string>
+    <string name="position_top">Top</string>
+    <string name="position_center">Center</string>
+    <string name="position_bottom">Bottom</string>
+
+    <string name="theme_icons">Icons</string>
+    <string name="theme_level">Level</string>
+    <string name="theme_names">Names</string>
     <string name="show_icons">Show icons</string>
     <string name="show_level">Show level</string>
-    <string name="panel_opacity">Opacity</string>
+    <string name="show_labels">Show names</string>
+    <string name="icon_position">Icon position</string>
+    <string name="level_position">Level position</string>
+    <string name="place_inside">Inside</string>
+    <string name="place_start">Start</string>
+    <string name="place_end">End</string>
+    <string name="hint_place">Start is above or left of the slider, end is below or right</string>
+
+    <string name="theme_animation">Entrance animation</string>
+    <string name="anim_none">None</string>
+    <string name="anim_fade">Fade</string>
+    <string name="anim_slide">Slide</string>
+    <string name="anim_pop">Pop</string>
+    <string name="hint_play">Tap Play under the preview to watch it</string>
 
     <string name="presets_hint">Tap a style to apply it. Your sliders and trigger position stay the same.</string>
     <string name="presets_classic">Classic</string>
