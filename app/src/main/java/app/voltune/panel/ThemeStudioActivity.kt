@@ -1,4 +1,3 @@
-
 package app.voltune.panel
 
 import android.content.Intent
@@ -259,6 +258,12 @@ class ThemeStudioActivity : AppCompatActivity() {
     }
 
     private fun buildShapeTab() {
+        val panelSize = group(R.string.panel_size)
+        addSlider(panelSize, R.string.panel_size, 70..150, 5, config.scale, ::percentText) { c, v ->
+            c.copy(scale = v)
+        }
+        hint(panelSize, R.string.hint_panel_size)
+
         val shape = group(R.string.theme_shape)
         addSlider(shape, R.string.panel_corners, 0..40, 1, config.panelCorner, ::dpText) { c, v ->
             c.copy(panelCorner = v)
