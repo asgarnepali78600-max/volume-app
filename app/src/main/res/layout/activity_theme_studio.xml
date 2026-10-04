@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_theme"
+            android:textColor="@color/vt_text"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="@color/vt_surface"
+            app:cardCornerRadius="24dp"
+            app:strokeWidth="0dp">
+
+            <app.voltune.panel.PanelPreview
+                android:id="@+id/preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="160dp"
+                android:padding="16dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="24dp">
+
+            <TextView
+                style="@style/Voltune.GroupLabel"
+                android:text="@string/theme_layout" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/layoutGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/layoutColumns"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/layout_columns" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/layoutRows"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/layout_rows" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Voltune.GroupLabel"
+                android:text="@string/theme_colors" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+                <LinearLayout
+                    android:id="@+id/colorsContainer"
+                    style="@style/Voltune.GroupContent" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Voltune.GroupLabel"
+                android:text="@string/theme_shape" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+                <LinearLayout
+                    android:id="@+id/shapeContainer"
+                    style="@style/Voltune.GroupContent" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Voltune.GroupLabel"
+                android:text="@string/theme_size" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+                <LinearLayout
+                    android:id="@+id/sizeContainer"
+                    style="@style/Voltune.GroupContent" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Voltune.GroupLabel"
+                android:text="@string/theme_display" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+                <LinearLayout
+                    android:id="@+id/displayContainer"
+                    style="@style/Voltune.GroupContent" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
