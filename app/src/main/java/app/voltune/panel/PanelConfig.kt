@@ -15,8 +15,14 @@ data class PanelConfig(
     val barLength: Int = 190,
     val barSpacing: Int = 10,
     val borderWidth: Int = 0,
+    val panelBackground: Boolean = true,
+    val iconPosition: Placement = Placement.INSIDE,
+    val levelPosition: Placement = Placement.INSIDE,
     val showIcons: Boolean = true,
     val showLevel: Boolean = true,
+    val showLabels: Boolean = false,
+    val animation: Animation = Animation.SLIDE,
+    val position: Position = Position.CENTER,
     val opacity: Int = 100,
     val streams: List<StreamEntry> = defaultStreams(),
     val trigger: Trigger = Trigger()
@@ -43,6 +49,36 @@ data class PanelConfig(
 
         companion object {
             fun fromKey(key: String): BarStyle? = entries.firstOrNull { it.key == key }
+        }
+    }
+
+    enum class Placement(val key: String) {
+        INSIDE("inside"),
+        OUTSIDE("outside");
+
+        companion object {
+            fun fromKey(key: String): Placement? = entries.firstOrNull { it.key == key }
+        }
+    }
+
+    enum class Animation(val key: String) {
+        NONE("none"),
+        FADE("fade"),
+        SLIDE("slide"),
+        POP("pop");
+
+        companion object {
+            fun fromKey(key: String): Animation? = entries.firstOrNull { it.key == key }
+        }
+    }
+
+    enum class Position(val key: String) {
+        TOP("top"),
+        CENTER("center"),
+        BOTTOM("bottom");
+
+        companion object {
+            fun fromKey(key: String): Position? = entries.firstOrNull { it.key == key }
         }
     }
 
@@ -135,15 +171,21 @@ data class PanelConfig(
             .put("barLength", barLength)
             .put("barSpacing", barSpacing)
             .put("borderWidth", borderWidth)
+            .put("panelBackground", panelBackground)
+            .put("iconPosition", iconPosition.key)
+            .put("levelPosition", levelPosition.key)
             .put("showIcons", showIcons)
             .put("showLevel", showLevel)
+            .put("showLabels", showLabels)
+            .put("animation", animation.key)
+            .put("position", position.key)
             .put("opacity", opacity)
             .put("streams", streamArray)
             .put("trigger", trigger.toJson())
     }
 
     companion object {
-        const val VERSION = 2
+        const val VERSION = 3
 
         fun defaultStreams(): List<StreamEntry> {
             val onByDefault = setOf(Stream.MEDIA, Stream.RING, Stream.NOTIFICATION, Stream.ALARM)
@@ -162,8 +204,14 @@ data class PanelConfig(
                 barLength = json.optInt("barLength", d.barLength).coerceIn(120, 280),
                 barSpacing = json.optInt("barSpacing", d.barSpacing).coerceIn(0, 24),
                 borderWidth = json.optInt("borderWidth", d.borderWidth).coerceIn(0, 4),
+                panelBackground = json.optBoolean("panelBackground", d.panelBackground),
+                iconPosition = Placement.fromKey(json.optString("iconPosition")) ?: d.iconPosition,
+                levelPosition = Placement.fromKey(json.optString("levelPosition")) ?: d.levelPosition,
                 showIcons = json.optBoolean("showIcons", d.showIcons),
                 showLevel = json.optBoolean("showLevel", d.showLevel),
+                showLabels = json.optBoolean("showLabels", d.showLabels),
+                animation = Animation.fromKey(json.optString("animation")) ?: d.animation,
+                position = Position.fromKey(json.optString("position")) ?: d.position,
                 opacity = json.optInt("opacity", d.opacity).coerceIn(40, 100),
                 streams = parseStreams(json.optJSONArray("streams")) ?: d.streams,
                 trigger = json.optJSONObject("trigger")?.let { Trigger.fromJson(it) } ?: d.trigger
