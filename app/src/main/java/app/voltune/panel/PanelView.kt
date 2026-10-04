@@ -58,7 +58,7 @@ class PanelView(context: Context) : LinearLayout(context) {
         val columns = config.layout == PanelConfig.Layout.COLUMNS
         val colors = config.colors
         orientation = if (columns) HORIZONTAL else VERTICAL
-        gravity = if (columns) Gravity.BOTTOM else Gravity.START
+        gravity = if (columns) Gravity.CENTER_VERTICAL else Gravity.START
         alpha = config.opacity / 100f
 
         background = if (config.panelBackground) {
@@ -88,88 +88,137 @@ class PanelView(context: Context) : LinearLayout(context) {
 
     private fun buildSlot(config: PanelConfig, stream: Stream, columns: Boolean): View {
         val colors = config.colors
-        val iconOutside = config.showIcons && config.iconPosition == Placement.OUTSIDE
-        val levelOutside = config.showLevel && config.levelPosition == Placement.OUTSIDE
+        val iconPlace = if (config.showIcons) config.iconPosition else null
+        val levelPlace = if (config.showLevel) config.levelPosition else null
 
         val bar = VolumeBar(context).apply {
             style = config.barStyle
             vertical = columns
             cornerRadius = dp(config.barCorner).toFloat()
-            showLevel = config.showLevel && config.levelPosition == Placement.INSIDE
-            icon = if (config.showIcons && config.iconPosition == Placement.INSIDE) {
+            outlineWidth = dp(config.barOutline).toFloat()
+            showLevel = levelPlace == Placement.INSIDE
+            icon = if (iconPlace == Placement.INSIDE) {
                 ContextCompat.getDrawable(context, stream.icon)
             } else {
                 null
             }
             contentDescription = context.getString(stream.label)
-            setColors(colors.track, colors.fill, colors.fillEnd, colors.icon, colors.text)
+            setColors(
+                colors.track, colors.fill, colors.fillEnd,
+                colors.icon, colors.text, colors.outline
+            )
 
             if (!config.panelBackground && style in FLOATING_STYLES) {
                 elevation = dp(6).toFloat()
-                outlineProvider = roundedOutline(cornerRadius)
+                outlineProvider = roundedOutline(cornerRadius + outlineWidth)
             }
         }
 
-        val levelView = if (levelOutside) smallText(colors.text, bold = true) else null
+        val levelView = if (levelPlace == Placement.START || levelPlace == Placement.END) {
+            smallText(colors.text, bold = true)
+        } else {
+            null
+        }
+
         val slot = LinearLayout(context).apply {
             clipChildren = false
             clipToPadding = false
         }
 
         if (columns) {
-            val minWidth = when {
-                config.showLabels -> 56
-                levelOutside -> 40
-                else -> 0
-            }
-            val slotWidth = dp(max(config.barThickness, minWidth))
-            slot.orientation = VERTICAL
-            slot.gravity = Gravity.CENTER_HORIZONTAL
-
-            levelView?.let {
-                it.gravity = Gravity.CENTER
-                slot.addView(it, LayoutParams(slotWidth, LayoutParams.WRAP_CONTENT).apply {
-                    bottomMargin = dp(6)
-                })
-            }
-            slot.addView(bar, LayoutParams(dp(config.barThickness), dp(config.barLength)))
-            if (iconOutside) {
-                slot.addView(iconView(stream, colors.text), LayoutParams(dp(22), dp(22)).apply {
-                    topMargin = dp(8)
-                })
-            }
-            if (config.showLabels) {
-                slot.addView(
-                    labelView(stream, colors.text, Gravity.CENTER),
-                    LayoutParams(slotWidth, LayoutParams.WRAP_CONTENT).apply { topMargin = dp(6) }
-                )
-            }
+            buildColumnSlot(slot, config, stream, bar, levelView, iconPlace, levelPlace)
         } else {
-            slot.orientation = HORIZONTAL
-            slot.gravity = Gravity.CENTER_VERTICAL
-
-            if (config.showLabels) {
-                slot.addView(
-                    labelView(stream, colors.text, Gravity.START),
-                    LayoutParams(dp(84), LayoutParams.WRAP_CONTENT).apply { marginEnd = dp(8) }
-                )
-            }
-            if (iconOutside) {
-                slot.addView(iconView(stream, colors.text), LayoutParams(dp(22), dp(22)).apply {
-                    marginEnd = dp(10)
-                })
-            }
-            slot.addView(bar, LayoutParams(dp(config.barLength), dp(config.barThickness)))
-            levelView?.let {
-                it.gravity = Gravity.END
-                slot.addView(it, LayoutParams(dp(44), LayoutParams.WRAP_CONTENT).apply {
-                    marginStart = dp(8)
-                })
-            }
+            buildRowSlot(slot, config, stream, bar, levelView, iconPlace, levelPlace)
         }
 
         bind(stream, bar, levelView)
         return slot
+    }
+
+    private fun buildColumnSlot(
+        slot: LinearLayout,
+        config: PanelConfig,
+        stream: Stream,
+        bar: VolumeBar,
+        levelView: TextView?,
+        iconPlace: Placement?,
+        levelPlace: Placement?
+    ) {
+        val textColor = config.colors.text
+        val minWidth = when {
+            config.showLabels -> 56
+            levelView != null -> 40
+            else -> 0
+        }
+        val slotWidth = dp(max(config.barThickness, minWidth))
+        slot.orientation = VERTICAL
+        slot.gravity = Gravity.CENTER_HORIZONTAL
+
+        fun addLevel(top: Boolean) {
+            val view = levelView ?: return
+            view.gravity = Gravity.CENTER
+            slot.addView(view, LayoutParams(slotWidth, LayoutParams.WRAP_CONTENT).apply {
+                if (top) bottomMargin = dp(6) else topMargin = dp(6)
+            })
+        }
+
+        fun addIcon(top: Boolean) {
+            slot.addView(iconView(stream, textColor), LayoutParams(dp(22), dp(22)).apply {
+                if (top) bottomMargin = dp(8) else topMargin = dp(8)
+            })
+        }
+
+        if (levelPlace == Placement.START) addLevel(top = true)
+        if (iconPlace == Placement.START) addIcon(top = true)
+        slot.addView(bar, LayoutParams(dp(config.barThickness), dp(config.barLength)))
+        if (iconPlace == Placement.END) addIcon(top = false)
+        if (levelPlace == Placement.END) addLevel(top = false)
+        if (config.showLabels) {
+            slot.addView(
+                labelView(stream, textColor, Gravity.CENTER),
+                LayoutParams(slotWidth, LayoutParams.WRAP_CONTENT).apply { topMargin = dp(6) }
+            )
+        }
+    }
+
+    private fun buildRowSlot(
+        slot: LinearLayout,
+        config: PanelConfig,
+        stream: Stream,
+        bar: VolumeBar,
+        levelView: TextView?,
+        iconPlace: Placement?,
+        levelPlace: Placement?
+    ) {
+        val textColor = config.colors.text
+        slot.orientation = HORIZONTAL
+        slot.gravity = Gravity.CENTER_VERTICAL
+
+        fun addLevel(left: Boolean) {
+            val view = levelView ?: return
+            view.gravity = if (left) Gravity.START else Gravity.END
+            slot.addView(view, LayoutParams(dp(44), LayoutParams.WRAP_CONTENT).apply {
+                if (left) marginEnd = dp(8) else marginStart = dp(8)
+            })
+        }
+
+        fun addIcon(left: Boolean) {
+            slot.addView(iconView(stream, textColor), LayoutParams(dp(22), dp(22)).apply {
+                if (left) marginEnd = dp(10) else marginStart = dp(10)
+            })
+        }
+
+        if (config.showLabels) {
+            slot.addView(
+                labelView(stream, textColor, Gravity.START),
+                LayoutParams(dp(84), LayoutParams.WRAP_CONTENT).apply { marginEnd = dp(8) }
+            )
+        }
+        if (iconPlace == Placement.START) addIcon(left = true)
+        if (levelPlace == Placement.START) addLevel(left = true)
+        slot.addView(bar, LayoutParams(dp(config.barLength), dp(config.barThickness)))
+        if (levelPlace == Placement.END) addLevel(left = false)
+        if (iconPlace == Placement.END) addIcon(left = false)
     }
 
     private fun iconView(stream: Stream, color: Int) = ImageView(context).apply {
