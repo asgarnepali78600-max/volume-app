@@ -96,6 +96,8 @@
     <string name="hint_colors">Pick the same color twice for a flat look, or two colors for a gradient</string>
     <string name="cd_color_option">Color %1$s</string>
 
+    <string name="panel_size">Panel size</string>
+    <string name="hint_panel_size">Makes the whole panel bigger or smaller. It stays the same when you switch presets.</string>
     <string name="theme_shape">Shape</string>
     <string name="panel_corners">Panel corners</string>
     <string name="bar_corners">Slider corners</string>
