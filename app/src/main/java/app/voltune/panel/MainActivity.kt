@@ -106,6 +106,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openSection(section: Section) {
         val screen = when (section) {
+            Section.PRESETS -> PresetsActivity::class.java
             Section.THEME -> ThemeStudioActivity::class.java
             else -> null
         }
