@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/groupTitle"
+        style="@style/Voltune.GroupLabel" />
+
+    <com.google.android.material.card.MaterialCardView style="@style/Voltune.GroupCard">
+
+        <LinearLayout
+            android:id="@+id/groupContent"
+            style="@style/Voltune.GroupContent" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>
