@@ -10,6 +10,7 @@
     <string name="stream_system">System</string>
 
     <string name="percent_format">%1$d%%</string>
+    <string name="dp_format">%1$d dp</string>
 
     <string name="floating_panel">Floating panel</string>
     <string name="floating_panel_desc">Open volume controls from any app using a trigger on the screen edge</string>
@@ -54,4 +55,26 @@
     <string name="section_backup_desc">Import and export settings</string>
     <string name="section_permissions">Permissions</string>
     <string name="section_permissions_desc">Check what Voltune can do</string>
+
+    <string name="theme_layout">Layout</string>
+    <string name="layout_columns">Columns</string>
+    <string name="layout_rows">Rows</string>
+    <string name="theme_colors">Colors</string>
+    <string name="color_panel">Panel</string>
+    <string name="color_track">Track</string>
+    <string name="color_fill">Fill</string>
+    <string name="color_icon">Icons</string>
+    <string name="color_text">Text</string>
+    <string name="cd_color_option">Color %1$s</string>
+    <string name="theme_shape">Shape</string>
+    <string name="panel_corners">Panel corners</string>
+    <string name="bar_corners">Slider corners</string>
+    <string name="theme_size">Size</string>
+    <string name="bar_thickness">Thickness</string>
+    <string name="bar_length">Length</string>
+    <string name="bar_spacing">Spacing</string>
+    <string name="theme_display">Display</string>
+    <string name="show_icons">Show icons</string>
+    <string name="show_level">Show level</string>
+    <string name="panel_opacity">Opacity</string>
 </resources>
