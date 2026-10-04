@@ -89,6 +89,9 @@
     <string name="panel_opacity">Opacity</string>
 
     <string name="presets_hint">Tap a style to apply it. Your sliders and trigger position stay the same.</string>
+    <string name="presets_classic">Classic</string>
+    <string name="presets_luxury">Luxury</string>
+    <string name="preset_premium">Premium</string>
     <string name="preset_applied">%1$s applied</string>
     <string name="preset_midnight">Midnight Violet</string>
     <string name="preset_arctic">Arctic Glass</string>
@@ -100,4 +103,14 @@
     <string name="preset_blush">Blush Rows</string>
     <string name="preset_ocean">Ocean Slim</string>
     <string name="preset_sunrise">Sunrise</string>
+    <string name="preset_royal_gold">Royal Gold</string>
+    <string name="preset_rose_gold">Rose Gold</string>
+    <string name="preset_liquid_glass">Liquid Glass</string>
+    <string name="preset_aurora">Aurora</string>
+    <string name="preset_obsidian">Obsidian</string>
+    <string name="preset_cyber_neon">Cyber Neon</string>
+    <string name="preset_velvet">Velvet</string>
+    <string name="preset_emerald_lux">Emerald Lux</string>
+    <string name="preset_minimal_line">Minimal Line</string>
+    <string name="preset_sunset_glow">Sunset Glow</string>
 </resources>
