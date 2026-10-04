@@ -14,6 +14,7 @@ data class PanelConfig(
     val barThickness: Int = 48,
     val barLength: Int = 190,
     val barSpacing: Int = 10,
+    val barOutline: Int = 0,
     val borderWidth: Int = 0,
     val panelBackground: Boolean = true,
     val iconPosition: Placement = Placement.INSIDE,
@@ -54,7 +55,8 @@ data class PanelConfig(
 
     enum class Placement(val key: String) {
         INSIDE("inside"),
-        OUTSIDE("outside");
+        START("start"),
+        END("end");
 
         companion object {
             fun fromKey(key: String): Placement? = entries.firstOrNull { it.key == key }
@@ -92,7 +94,8 @@ data class PanelConfig(
         val fillEnd: Int = 0xFF9D8CFF.toInt(),
         val icon: Int = 0xFFFFFFFF.toInt(),
         val text: Int = 0xFFE6E8EE.toInt(),
-        val border: Int = 0x33FFFFFF
+        val border: Int = 0x33FFFFFF,
+        val outline: Int = 0xFFFFFFFF.toInt()
     ) {
         fun toJson(): JSONObject = JSONObject()
             .put("panel", hex(panel))
@@ -103,6 +106,7 @@ data class PanelConfig(
             .put("icon", hex(icon))
             .put("text", hex(text))
             .put("border", hex(border))
+            .put("outline", hex(outline))
 
         companion object {
             fun fromJson(json: JSONObject): Colors {
@@ -117,7 +121,8 @@ data class PanelConfig(
                     fillEnd = json.optColor("fillEnd", fill),
                     icon = json.optColor("icon", d.icon),
                     text = json.optColor("text", d.text),
-                    border = json.optColor("border", d.border)
+                    border = json.optColor("border", d.border),
+                    outline = json.optColor("outline", d.outline)
                 )
             }
         }
@@ -170,6 +175,7 @@ data class PanelConfig(
             .put("barThickness", barThickness)
             .put("barLength", barLength)
             .put("barSpacing", barSpacing)
+            .put("barOutline", barOutline)
             .put("borderWidth", borderWidth)
             .put("panelBackground", panelBackground)
             .put("iconPosition", iconPosition.key)
@@ -185,7 +191,7 @@ data class PanelConfig(
     }
 
     companion object {
-        const val VERSION = 3
+        const val VERSION = 4
 
         fun defaultStreams(): List<StreamEntry> {
             val onByDefault = setOf(Stream.MEDIA, Stream.RING, Stream.NOTIFICATION, Stream.ALARM)
@@ -203,10 +209,11 @@ data class PanelConfig(
                 barThickness = json.optInt("barThickness", d.barThickness).coerceIn(24, 72),
                 barLength = json.optInt("barLength", d.barLength).coerceIn(120, 280),
                 barSpacing = json.optInt("barSpacing", d.barSpacing).coerceIn(0, 24),
+                barOutline = json.optInt("barOutline", d.barOutline).coerceIn(0, 4),
                 borderWidth = json.optInt("borderWidth", d.borderWidth).coerceIn(0, 4),
                 panelBackground = json.optBoolean("panelBackground", d.panelBackground),
-                iconPosition = Placement.fromKey(json.optString("iconPosition")) ?: d.iconPosition,
-                levelPosition = Placement.fromKey(json.optString("levelPosition")) ?: d.levelPosition,
+                iconPosition = placement(json.optString("iconPosition"), Placement.END),
+                levelPosition = placement(json.optString("levelPosition"), Placement.START),
                 showIcons = json.optBoolean("showIcons", d.showIcons),
                 showLevel = json.optBoolean("showLevel", d.showLevel),
                 showLabels = json.optBoolean("showLabels", d.showLabels),
@@ -217,6 +224,9 @@ data class PanelConfig(
                 trigger = json.optJSONObject("trigger")?.let { Trigger.fromJson(it) } ?: d.trigger
             )
         }
+
+        private fun placement(key: String, legacyOutside: Placement): Placement =
+            if (key == "outside") legacyOutside else Placement.fromKey(key) ?: Placement.INSIDE
 
         private fun parseStreams(array: JSONArray?): List<StreamEntry>? {
             if (array == null) return null
