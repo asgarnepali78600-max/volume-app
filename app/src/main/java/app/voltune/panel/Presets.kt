@@ -429,3 +429,20 @@ object Presets {
         track: Long,
         fill: Long,
         icon: Long,
+        text: Long,
+        panelEnd: Long = panel,
+        fillEnd: Long = fill,
+        border: Long = 0x33FFFFFF,
+        outline: Long = 0xFFFFFFFF
+    ) = Colors(
+        panel = panel.toInt(),
+        panelEnd = panelEnd.toInt(),
+        track = track.toInt(),
+        fill = fill.toInt(),
+        fillEnd = fillEnd.toInt(),
+        icon = icon.toInt(),
+        text = text.toInt(),
+        border = border.toInt(),
+        outline = outline.toInt()
+    )
+}
