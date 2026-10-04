@@ -21,10 +21,14 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import app.voltune.panel.PanelConfig.Animation
+import app.voltune.panel.PanelConfig.Position
 import kotlin.math.abs
 
 class PanelService : Service() {
@@ -130,7 +134,13 @@ class PanelService : Service() {
     @SuppressLint("RtlHardcoded")
     private fun edgeGravity() = if (config.trigger.onLeft) Gravity.LEFT else Gravity.RIGHT
 
-    private fun verticalOffset(): Int {
+    private fun panelVerticalGravity() = when (config.position) {
+        Position.TOP -> Gravity.TOP
+        Position.CENTER -> Gravity.CENTER_VERTICAL
+        Position.BOTTOM -> Gravity.BOTTOM
+    }
+
+    private fun triggerOffset(): Int {
         val screenHeight = resources.displayMetrics.heightPixels
         return screenHeight * config.trigger.offset / 100
     }
@@ -186,7 +196,7 @@ class PanelService : Service() {
             dp(settings.length + 38)
         ).apply {
             gravity = edge or Gravity.CENTER_VERTICAL
-            y = verticalOffset()
+            y = triggerOffset()
         }
 
         windowManager.addView(touchArea, params)
@@ -220,24 +230,93 @@ class PanelService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
         ).apply {
-            gravity = edgeGravity() or Gravity.CENTER_VERTICAL
+            gravity = edgeGravity() or panelVerticalGravity()
             x = dp(20)
+            y = if (config.position == Position.CENTER) 0 else dp(72)
         }
 
         windowManager.addView(view, params)
         panel = view
         trigger?.visibility = View.GONE
+        animateIn(view)
     }
 
-    private fun hidePanel() {
+    private fun animateIn(view: PanelView) {
+        val targetAlpha = view.alpha
+        val fromSide = if (config.trigger.onLeft) -1f else 1f
+
+        when (config.animation) {
+            Animation.NONE -> Unit
+            Animation.FADE -> {
+                view.alpha = 0f
+                view.animate().alpha(targetAlpha).setDuration(180).start()
+            }
+            Animation.SLIDE -> {
+                view.alpha = 0f
+                view.translationX = fromSide * dp(48)
+                view.animate()
+                    .alpha(targetAlpha)
+                    .translationX(0f)
+                    .setDuration(240)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+                cascade(view) { child, _ -> child.translationX = fromSide * dp(16) }
+            }
+            Animation.POP -> {
+                view.alpha = 0f
+                view.scaleX = 0.8f
+                view.scaleY = 0.8f
+                view.animate()
+                    .alpha(targetAlpha)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(280)
+                    .setInterpolator(OvershootInterpolator(1.6f))
+                    .start()
+                cascade(view) { child, _ ->
+                    child.scaleX = 0.6f
+                    child.scaleY = 0.6f
+                }
+            }
+        }
+    }
+
+    private fun cascade(view: PanelView, prepare: (View, Int) -> Unit) {
+        for (i in 0 until view.childCount) {
+            val child = view.getChildAt(i)
+            child.alpha = 0f
+            prepare(child, i)
+            child.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setStartDelay(60L + i * 35L)
+                .setDuration(200)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+    }
+
+    private fun hidePanel(animated: Boolean = true) {
         val view = panel ?: return
-        windowManager.removeView(view)
         panel = null
         trigger?.visibility = View.VISIBLE
+
+        if (!animated || config.animation == Animation.NONE) {
+            windowManager.removeView(view)
+            return
+        }
+
+        view.animate()
+            .alpha(0f)
+            .setDuration(120)
+            .withEndAction { if (view.isAttachedToWindow) windowManager.removeView(view) }
+            .start()
     }
 
     private fun removeOverlays() {
-        hidePanel()
+        hidePanel(animated = false)
         trigger?.let { windowManager.removeView(it) }
         trigger = null
     }
