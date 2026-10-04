@@ -7,12 +7,14 @@ import java.util.Locale
 
 data class PanelConfig(
     val layout: Layout = Layout.COLUMNS,
+    val barStyle: BarStyle = BarStyle.SOLID,
     val colors: Colors = Colors(),
     val panelCorner: Int = 28,
     val barCorner: Int = 20,
     val barThickness: Int = 48,
     val barLength: Int = 190,
     val barSpacing: Int = 10,
+    val borderWidth: Int = 0,
     val showIcons: Boolean = true,
     val showLevel: Boolean = true,
     val opacity: Int = 100,
@@ -32,31 +34,54 @@ data class PanelConfig(
         }
     }
 
+    enum class BarStyle(val key: String) {
+        SOLID("solid"),
+        GRADIENT("gradient"),
+        GLASS("glass"),
+        SEGMENTED("segmented"),
+        LINE("line");
+
+        companion object {
+            fun fromKey(key: String): BarStyle? = entries.firstOrNull { it.key == key }
+        }
+    }
+
     data class StreamEntry(val stream: Stream, val enabled: Boolean)
 
     data class Colors(
         val panel: Int = 0xFF14161C.toInt(),
+        val panelEnd: Int = 0xFF14161C.toInt(),
         val track: Int = 0xFF2A2E3A.toInt(),
         val fill: Int = 0xFF6C5CE7.toInt(),
+        val fillEnd: Int = 0xFF9D8CFF.toInt(),
         val icon: Int = 0xFFFFFFFF.toInt(),
-        val text: Int = 0xFFE6E8EE.toInt()
+        val text: Int = 0xFFE6E8EE.toInt(),
+        val border: Int = 0x33FFFFFF
     ) {
         fun toJson(): JSONObject = JSONObject()
             .put("panel", hex(panel))
+            .put("panelEnd", hex(panelEnd))
             .put("track", hex(track))
             .put("fill", hex(fill))
+            .put("fillEnd", hex(fillEnd))
             .put("icon", hex(icon))
             .put("text", hex(text))
+            .put("border", hex(border))
 
         companion object {
             fun fromJson(json: JSONObject): Colors {
                 val d = Colors()
+                val panel = json.optColor("panel", d.panel)
+                val fill = json.optColor("fill", d.fill)
                 return Colors(
-                    panel = json.optColor("panel", d.panel),
+                    panel = panel,
+                    panelEnd = json.optColor("panelEnd", panel),
                     track = json.optColor("track", d.track),
-                    fill = json.optColor("fill", d.fill),
+                    fill = fill,
+                    fillEnd = json.optColor("fillEnd", fill),
                     icon = json.optColor("icon", d.icon),
-                    text = json.optColor("text", d.text)
+                    text = json.optColor("text", d.text),
+                    border = json.optColor("border", d.border)
                 )
             }
         }
@@ -102,12 +127,14 @@ data class PanelConfig(
         return JSONObject()
             .put("version", VERSION)
             .put("layout", layout.key)
+            .put("barStyle", barStyle.key)
             .put("colors", colors.toJson())
             .put("panelCorner", panelCorner)
             .put("barCorner", barCorner)
             .put("barThickness", barThickness)
             .put("barLength", barLength)
             .put("barSpacing", barSpacing)
+            .put("borderWidth", borderWidth)
             .put("showIcons", showIcons)
             .put("showLevel", showLevel)
             .put("opacity", opacity)
@@ -116,7 +143,7 @@ data class PanelConfig(
     }
 
     companion object {
-        const val VERSION = 1
+        const val VERSION = 2
 
         fun defaultStreams(): List<StreamEntry> {
             val onByDefault = setOf(Stream.MEDIA, Stream.RING, Stream.NOTIFICATION, Stream.ALARM)
@@ -127,12 +154,14 @@ data class PanelConfig(
             val d = PanelConfig()
             return PanelConfig(
                 layout = Layout.fromKey(json.optString("layout")) ?: d.layout,
+                barStyle = BarStyle.fromKey(json.optString("barStyle")) ?: d.barStyle,
                 colors = json.optJSONObject("colors")?.let { Colors.fromJson(it) } ?: d.colors,
                 panelCorner = json.optInt("panelCorner", d.panelCorner).coerceIn(0, 40),
                 barCorner = json.optInt("barCorner", d.barCorner).coerceIn(0, 40),
                 barThickness = json.optInt("barThickness", d.barThickness).coerceIn(24, 72),
                 barLength = json.optInt("barLength", d.barLength).coerceIn(120, 280),
                 barSpacing = json.optInt("barSpacing", d.barSpacing).coerceIn(0, 24),
+                borderWidth = json.optInt("borderWidth", d.borderWidth).coerceIn(0, 4),
                 showIcons = json.optBoolean("showIcons", d.showIcons),
                 showLevel = json.optBoolean("showLevel", d.showLevel),
                 opacity = json.optInt("opacity", d.opacity).coerceIn(40, 100),
