@@ -39,29 +39,29 @@ class PanelView(context: Context) : LinearLayout(context) {
         bound.clear()
 
         val columns = config.layout == PanelConfig.Layout.COLUMNS
+        val colors = config.colors
         orientation = if (columns) HORIZONTAL else VERTICAL
         alpha = config.opacity / 100f
 
-        background = GradientDrawable().apply {
-            setColor(config.colors.panel)
+        background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(colors.panel, colors.panelEnd)
+        ).apply {
             cornerRadius = dp(config.panelCorner).toFloat()
+            if (config.borderWidth > 0) setStroke(dp(config.borderWidth), colors.border)
         }
         val pad = dp(14)
         setPadding(pad, pad, pad, pad)
 
         config.enabledStreams.forEachIndexed { index, stream ->
             val bar = VolumeBar(context).apply {
+                style = config.barStyle
                 vertical = columns
                 cornerRadius = dp(config.barCorner).toFloat()
                 showLevel = config.showLevel
                 icon = if (config.showIcons) ContextCompat.getDrawable(context, stream.icon) else null
                 contentDescription = context.getString(stream.label)
-                setColors(
-                    config.colors.track,
-                    config.colors.fill,
-                    config.colors.icon,
-                    config.colors.text
-                )
+                setColors(colors.track, colors.fill, colors.fillEnd, colors.icon, colors.text)
             }
 
             val params = if (columns) {
