@@ -31,6 +31,20 @@
             android:textColor="@color/vt_text"
             android:textSize="14sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/presetBadge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:letterSpacing="0.15"
+            android:text="@string/preset_premium"
+            android:textAllCaps="true"
+            android:textColor="#D4AF37"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
