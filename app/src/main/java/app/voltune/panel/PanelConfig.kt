@@ -9,6 +9,7 @@ data class PanelConfig(
     val layout: Layout = Layout.COLUMNS,
     val barStyle: BarStyle = BarStyle.SOLID,
     val colors: Colors = Colors(),
+    val scale: Int = 100,
     val panelCorner: Int = 28,
     val barCorner: Int = 20,
     val barThickness: Int = 48,
@@ -170,6 +171,7 @@ data class PanelConfig(
             .put("layout", layout.key)
             .put("barStyle", barStyle.key)
             .put("colors", colors.toJson())
+            .put("scale", scale)
             .put("panelCorner", panelCorner)
             .put("barCorner", barCorner)
             .put("barThickness", barThickness)
@@ -191,7 +193,7 @@ data class PanelConfig(
     }
 
     companion object {
-        const val VERSION = 4
+        const val VERSION = 5
 
         fun defaultStreams(): List<StreamEntry> {
             val onByDefault = setOf(Stream.MEDIA, Stream.RING, Stream.NOTIFICATION, Stream.ALARM)
@@ -204,6 +206,7 @@ data class PanelConfig(
                 layout = Layout.fromKey(json.optString("layout")) ?: d.layout,
                 barStyle = BarStyle.fromKey(json.optString("barStyle")) ?: d.barStyle,
                 colors = json.optJSONObject("colors")?.let { Colors.fromJson(it) } ?: d.colors,
+                scale = json.optInt("scale", d.scale).coerceIn(70, 150),
                 panelCorner = json.optInt("panelCorner", d.panelCorner).coerceIn(0, 40),
                 barCorner = json.optInt("barCorner", d.barCorner).coerceIn(0, 40),
                 barThickness = json.optInt("barThickness", d.barThickness).coerceIn(24, 72),
