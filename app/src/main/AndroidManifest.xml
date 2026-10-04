@@ -29,6 +29,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".PresetsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".PanelLauncherActivity"
             android:excludeFromRecents="true"
             android:exported="false"
