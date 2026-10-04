@@ -1,6 +1,7 @@
 package app.voltune.panel
 
 import android.os.Bundle
+import android.view.View
 import android.widget.GridLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -25,17 +26,19 @@ class PresetsActivity : AppCompatActivity() {
         applySystemBarPadding()
 
         store = ConfigStore(this)
-        buildGrid()
-        highlight(store.load())
+        val current = store.load()
+        buildGrid(binding.luxuryGrid, Presets.luxury, current)
+        buildGrid(binding.classicGrid, Presets.classic, current)
+        highlight(current)
     }
 
-    private fun buildGrid() {
-        val current = store.load()
+    private fun buildGrid(grid: GridLayout, presets: List<Presets.Preset>, current: PanelConfig) {
         val gap = dp(6)
 
-        Presets.all.forEach { preset ->
-            val card = ItemPresetBinding.inflate(layoutInflater, binding.presetGrid, false)
+        presets.forEach { preset ->
+            val card = ItemPresetBinding.inflate(layoutInflater, grid, false)
             card.presetName.setText(preset.name)
+            card.presetBadge.visibility = if (preset.premium) View.VISIBLE else View.GONE
             card.presetPreview.interactive = false
             card.presetPreview.show(Presets.applyTo(current, preset))
             card.root.setOnClickListener { select(preset) }
@@ -47,7 +50,7 @@ class PresetsActivity : AppCompatActivity() {
                 width = 0
                 setMargins(gap, gap, gap, gap)
             }
-            binding.presetGrid.addView(card.root, params)
+            grid.addView(card.root, params)
             cards += preset to card
         }
     }
