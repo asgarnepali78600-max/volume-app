@@ -1,17 +1,24 @@
 package app.voltune.panel
 
 import androidx.annotation.StringRes
+import app.voltune.panel.PanelConfig.Animation
 import app.voltune.panel.PanelConfig.BarStyle
 import app.voltune.panel.PanelConfig.Colors
 import app.voltune.panel.PanelConfig.Layout
+import app.voltune.panel.PanelConfig.Placement
+import app.voltune.panel.PanelConfig.Position
+import app.voltune.panel.PanelConfig.StreamEntry
 
 object Presets {
 
     data class Preset(
         @StringRes val name: Int,
         val look: PanelConfig,
-        val premium: Boolean = false
+        val premium: Boolean = false,
+        val streams: List<Stream>? = null
     )
+
+    enum class Part { ALL, LAYOUT, COLORS }
 
     val classic = listOf(
         Preset(R.string.preset_midnight, PanelConfig()),
@@ -77,6 +84,150 @@ object Presets {
         Preset(
             R.string.preset_sunrise,
             PanelConfig(colors = colors(0xFF1C1530, 0xFF2E2448, 0xFFFFB84D, 0xFF1C1530, 0xFFFFB84D))
+        )
+    )
+
+    val signature = listOf(
+        Preset(
+            R.string.preset_pocket,
+            PanelConfig(
+                barStyle = BarStyle.GRADIENT,
+                colors = colors(
+                    panel = 0xFF101218, track = 0xFF252936,
+                    fill = 0xFF6C5CE7, fillEnd = 0xFF9D8CFF,
+                    icon = 0xFFFFFFFF, text = 0xFFE6E8EE
+                ),
+                panelCorner = 24,
+                barThickness = 40,
+                barLength = 150,
+                showLevel = false,
+                animation = Animation.POP,
+                position = Position.BOTTOM
+            ),
+            streams = listOf(Stream.MEDIA, Stream.RING)
+        ),
+        Preset(
+            R.string.preset_floating_pills,
+            PanelConfig(
+                barStyle = BarStyle.GRADIENT,
+                colors = colors(
+                    panel = 0xFF14161C, track = 0xCC1E2230,
+                    fill = 0xFF4DA3FF, fillEnd = 0xFF9D8CFF,
+                    icon = 0xFFFFFFFF, text = 0xFFFFFFFF
+                ),
+                barCorner = 23,
+                barThickness = 46,
+                barLength = 200,
+                panelBackground = false,
+                iconPosition = Placement.END,
+                levelPosition = Placement.START,
+                animation = Animation.POP
+            ),
+            premium = true
+        ),
+        Preset(
+            R.string.preset_studio_rows,
+            PanelConfig(
+                layout = Layout.ROWS,
+                colors = colors(
+                    panel = 0xFF15151A, track = 0xFF2A2A33,
+                    fill = 0xFFFFB84D, icon = 0xFF15151A, text = 0xFFE6E6EA
+                ),
+                panelCorner = 18,
+                barCorner = 8,
+                barThickness = 30,
+                barLength = 200,
+                barSpacing = 12,
+                showLabels = true,
+                levelPosition = Placement.END
+            )
+        ),
+        Preset(
+            R.string.preset_dock,
+            PanelConfig(
+                barStyle = BarStyle.GLASS,
+                colors = colors(
+                    panel = 0xCC14161C, panelEnd = 0xCC1E2230,
+                    track = 0x26FFFFFF, fill = 0xE6FFFFFF, fillEnd = 0x80B9C6FF,
+                    icon = 0xFF1E2230, text = 0xFFFFFFFF, border = 0x33FFFFFF
+                ),
+                panelCorner = 32,
+                barCorner = 16,
+                barThickness = 56,
+                barLength = 130,
+                barSpacing = 12,
+                borderWidth = 1,
+                position = Position.BOTTOM
+            ),
+            streams = listOf(Stream.MEDIA, Stream.RING, Stream.ALARM)
+        ),
+        Preset(
+            R.string.preset_halo,
+            PanelConfig(
+                barStyle = BarStyle.LINE,
+                colors = colors(
+                    panel = 0xFFFFFFFF, panelEnd = 0xFFF4F5F8,
+                    track = 0xFFE3E6EC, fill = 0xFF6C5CE7, fillEnd = 0xFF4DA3FF,
+                    icon = 0xFF6C5CE7, text = 0xFF3A3F4F
+                ),
+                barThickness = 44,
+                barLength = 180,
+                showLabels = true,
+                levelPosition = Placement.START,
+                animation = Animation.FADE
+            )
+        ),
+        Preset(
+            R.string.preset_capsule,
+            PanelConfig(
+                colors = colors(
+                    panel = 0xFF2A2240, panelEnd = 0xFF3B2F5C,
+                    track = 0xFFE9E3FF, fill = 0xFF6B4FD8,
+                    icon = 0xFFFFFFFF, text = 0xFF2A2240, outline = 0xFFFFFFFF
+                ),
+                barCorner = 22,
+                barThickness = 44,
+                barOutline = 2,
+                animation = Animation.POP
+            ),
+            premium = true
+        ),
+        Preset(
+            R.string.preset_frost_line,
+            PanelConfig(
+                barStyle = BarStyle.LINE,
+                colors = colors(
+                    panel = 0xFFF7FAFF, panelEnd = 0xFFEAF1FB,
+                    track = 0xFFD3DEEC, fill = 0xFF4DA3FF, fillEnd = 0xFF2E7BD6,
+                    icon = 0xFF2E7BD6, text = 0xFF2E7BD6, border = 0x334DA3FF
+                ),
+                barThickness = 36,
+                barLength = 200,
+                borderWidth = 1,
+                iconPosition = Placement.END,
+                levelPosition = Placement.START
+            ),
+            premium = true
+        ),
+        Preset(
+            R.string.preset_ledger,
+            PanelConfig(
+                layout = Layout.ROWS,
+                barStyle = BarStyle.SEGMENTED,
+                colors = colors(
+                    panel = 0xFF0E0F12, track = 0xFF23252B,
+                    fill = 0xFF3DDC97, fillEnd = 0xFF00D1B2,
+                    icon = 0xFFE6E8EE, text = 0xFFE6E8EE
+                ),
+                panelCorner = 16,
+                barCorner = 4,
+                barThickness = 22,
+                barLength = 180,
+                showLabels = true,
+                iconPosition = Placement.START,
+                levelPosition = Placement.END
+            ),
+            premium = true
         )
     )
 
@@ -225,47 +376,56 @@ object Presets {
         )
     )
 
-    val all = classic + luxury
+    fun apply(current: PanelConfig, preset: Preset, part: Part): PanelConfig = when (part) {
+        Part.ALL -> applyColors(applyLayout(current, preset), preset)
+        Part.LAYOUT -> applyLayout(current, preset)
+        Part.COLORS -> applyColors(current, preset)
+    }
 
-    fun applyTo(current: PanelConfig, preset: Preset): PanelConfig {
+    fun isActive(current: PanelConfig, preset: Preset): Boolean =
+        apply(current, preset, Part.ALL) == current
+
+    private fun applyLayout(current: PanelConfig, preset: Preset): PanelConfig {
         val look = preset.look
         return current.copy(
             layout = look.layout,
             barStyle = look.barStyle,
-            colors = look.colors,
             panelCorner = look.panelCorner,
             barCorner = look.barCorner,
             barThickness = look.barThickness,
             barLength = look.barLength,
             barSpacing = look.barSpacing,
+            barOutline = look.barOutline,
             borderWidth = look.borderWidth,
+            panelBackground = look.panelBackground,
+            iconPosition = look.iconPosition,
+            levelPosition = look.levelPosition,
             showIcons = look.showIcons,
             showLevel = look.showLevel,
+            showLabels = look.showLabels,
+            animation = look.animation,
+            position = look.position,
             opacity = look.opacity,
-            trigger = current.trigger.copy(color = look.colors.fill)
+            streams = preset.streams?.let { withStreams(current.streams, it) } ?: current.streams
         )
     }
 
-    fun isActive(current: PanelConfig, preset: Preset): Boolean =
-        applyTo(current, preset) == current
+    private fun applyColors(current: PanelConfig, preset: Preset): PanelConfig =
+        current.copy(
+            colors = preset.look.colors,
+            trigger = current.trigger.copy(color = preset.look.colors.fill)
+        )
+
+    private fun withStreams(current: List<StreamEntry>, wanted: List<Stream>): List<StreamEntry> {
+        val first = wanted.map { StreamEntry(it, true) }
+        val rest = current.map { it.stream }
+            .filter { it !in wanted }
+            .map { StreamEntry(it, false) }
+        return first + rest
+    }
 
     private fun colors(
         panel: Long,
         track: Long,
         fill: Long,
         icon: Long,
-        text: Long,
-        panelEnd: Long = panel,
-        fillEnd: Long = fill,
-        border: Long = 0x33FFFFFF
-    ) = Colors(
-        panel = panel.toInt(),
-        panelEnd = panelEnd.toInt(),
-        track = track.toInt(),
-        fill = fill.toInt(),
-        fillEnd = fillEnd.toInt(),
-        icon = icon.toInt(),
-        text = text.toInt(),
-        border = border.toInt()
-    )
-}
