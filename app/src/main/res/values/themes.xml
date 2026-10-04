@@ -16,7 +16,7 @@
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
-    <style name="Voltune.GroupLabel">
+    <style name="Voltune.GroupLabel" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">4dp</item>
@@ -29,7 +29,7 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="Voltune.GroupCard">
+    <style name="Voltune.GroupCard" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="cardBackgroundColor">@color/vt_surface</item>
@@ -37,7 +37,7 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
-    <style name="Voltune.GroupContent">
+    <style name="Voltune.GroupContent" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">vertical</item>
