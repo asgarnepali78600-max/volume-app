@@ -8,9 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.view.Gravity
-import android.view.View
-import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -41,7 +38,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var store: ConfigStore
-    private lateinit var preview: PanelView
     private var configHandle: SharedPreferences.OnSharedPreferenceChangeListener? = null
     private var waitingForOverlay = false
 
@@ -59,8 +55,7 @@ class MainActivity : AppCompatActivity() {
         applySystemBarPadding()
 
         store = ConfigStore(this)
-        preview = PanelView(this).apply { onDndAccessNeeded = { openDndSettings() } }
-        binding.previewHost.addView(preview)
+        binding.preview.panel.onDndAccessNeeded = { openDndSettings() }
 
         buildSections()
 
@@ -72,8 +67,8 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         binding.panelSwitch.isChecked = PanelService.isRunning
-        configHandle = store.observe { renderPreview() }
-        renderPreview()
+        configHandle = store.observe { binding.preview.show(store.load()) }
+        binding.preview.show(store.load())
     }
 
     override fun onResume() {
@@ -88,30 +83,6 @@ class MainActivity : AppCompatActivity() {
         configHandle?.let { store.stopObserving(it) }
         configHandle = null
         super.onStop()
-    }
-
-    private fun renderPreview() {
-        preview.apply(store.load())
-        fitPreview()
-    }
-
-    private fun fitPreview() {
-        val host = binding.previewHost
-        val available = host.width - host.paddingLeft - host.paddingRight
-        if (available <= 0) {
-            host.post { fitPreview() }
-            return
-        }
-
-        val unspecified = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-        preview.measure(unspecified, unspecified)
-        val width = preview.measuredWidth
-        val height = preview.measuredHeight
-
-        val scale = if (width > available) available.toFloat() / width else 1f
-        preview.layoutParams = FrameLayout.LayoutParams(width, height, Gravity.CENTER)
-        preview.scaleX = scale
-        preview.scaleY = scale
     }
 
     private fun buildSections() {
@@ -134,7 +105,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openSection(section: Section) {
-        Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show()
+        val screen = when (section) {
+            Section.THEME -> ThemeStudioActivity::class.java
+            else -> null
+        }
+
+        if (screen == null) {
+            Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show()
+        } else {
+            startActivity(Intent(this, screen))
+        }
     }
 
     private fun enablePanel() {
