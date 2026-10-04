@@ -1,5 +1,6 @@
 package app.voltune.panel
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.GridLayout
@@ -8,8 +9,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import app.voltune.panel.Presets.Part
 import app.voltune.panel.databinding.ActivityPresetsBinding
 import app.voltune.panel.databinding.ItemPresetBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class PresetsActivity : AppCompatActivity() {
 
@@ -28,8 +31,13 @@ class PresetsActivity : AppCompatActivity() {
         store = ConfigStore(this)
         val current = store.load()
         buildGrid(binding.luxuryGrid, Presets.luxury, current)
+        buildGrid(binding.signatureGrid, Presets.signature, current)
         buildGrid(binding.classicGrid, Presets.classic, current)
-        highlight(current)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        highlight(store.load())
     }
 
     private fun buildGrid(grid: GridLayout, presets: List<Presets.Preset>, current: PanelConfig) {
@@ -40,8 +48,8 @@ class PresetsActivity : AppCompatActivity() {
             card.presetName.setText(preset.name)
             card.presetBadge.visibility = if (preset.premium) View.VISIBLE else View.GONE
             card.presetPreview.interactive = false
-            card.presetPreview.show(Presets.applyTo(current, preset))
-            card.root.setOnClickListener { select(preset) }
+            card.presetPreview.show(Presets.apply(current, preset, Part.ALL))
+            card.root.setOnClickListener { askHowToApply(preset) }
 
             val params = GridLayout.LayoutParams(
                 GridLayout.spec(GridLayout.UNDEFINED),
@@ -55,13 +63,39 @@ class PresetsActivity : AppCompatActivity() {
         }
     }
 
-    private fun select(preset: Presets.Preset) {
-        val updated = Presets.applyTo(store.load(), preset)
+    private fun askHowToApply(preset: Presets.Preset) {
+        val options = arrayOf(
+            getString(R.string.apply_all),
+            getString(R.string.apply_layout),
+            getString(R.string.apply_colors),
+            getString(R.string.apply_customize)
+        )
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(preset.name)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> applyPreset(preset, Part.ALL)
+                    1 -> applyPreset(preset, Part.LAYOUT)
+                    2 -> applyPreset(preset, Part.COLORS)
+                    else -> {
+                        applyPreset(preset, Part.ALL, announce = false)
+                        startActivity(Intent(this, ThemeStudioActivity::class.java))
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun applyPreset(preset: Presets.Preset, part: Part, announce: Boolean = true) {
+        val updated = Presets.apply(store.load(), preset, part)
         store.save(updated)
         highlight(updated)
 
-        val message = getString(R.string.preset_applied, getString(preset.name))
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        if (announce) {
+            val message = getString(R.string.preset_applied, getString(preset.name))
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun highlight(current: PanelConfig) {
