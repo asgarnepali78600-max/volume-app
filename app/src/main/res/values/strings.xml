@@ -77,4 +77,17 @@
     <string name="show_icons">Show icons</string>
     <string name="show_level">Show level</string>
     <string name="panel_opacity">Opacity</string>
+
+    <string name="presets_hint">Tap a style to apply it. Your sliders and trigger position stay the same.</string>
+    <string name="preset_applied">%1$s applied</string>
+    <string name="preset_midnight">Midnight Violet</string>
+    <string name="preset_arctic">Arctic Glass</string>
+    <string name="preset_ember">Ember</string>
+    <string name="preset_mint">Mint Rows</string>
+    <string name="preset_sand">Sand Dune</string>
+    <string name="preset_neon">Neon Night</string>
+    <string name="preset_mono">Mono</string>
+    <string name="preset_blush">Blush Rows</string>
+    <string name="preset_ocean">Ocean Slim</string>
+    <string name="preset_sunrise">Sunrise</string>
 </resources>
